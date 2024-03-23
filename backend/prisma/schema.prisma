@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider    = "postgresql"
+  url         = env("DATABASE_URL")
+  extensions  = [ postgis ]
+}
+
+model User {
+  id            String   @id
+  pw            String
+  name          String
+  phone         Int
+  email         String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime? @updatedAt
+
+  locate                UserLocate?
+  tendency              UserTendency?
+  session               UserSession?
+  loginHistory          UserLoginHistory[]
+  follow                UserFollowList[]    @relation(name: "userFollowList_user")
+  followList            UserFollowList[]    @relation(name: "userFollowList_followedUser")
+  ban                   UserBanList[]       @relation(name: "userBanList_user")
+  banList               UserBanList[]       @relation(name: "userBanList_bannedUser")
+
+  @@index([name])
+  @@index([createdAt])
+}
+
+model UserLocate {
+  userId  String  @id
+  geom    Unsupported("geometry(Point, 4326)")
+
+  user    User    @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  @@index([geom], type: Gist)
+}
+
+model UserTendency {
+  userId      String    @id
+  inward      Boolean    
+  quickly     Boolean
+  song        Boolean
+  songName    String?
+
+  user        User      @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+}
+
+model UserSession {
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  ip          String  
+
+  user        User      @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  @@index([ip])
+}
+
+model UserLoginHistory {
+  id          String    @id @default(uuid())
+  userId      String    
+  ip          String?
+  loggedAt    DateTime  @default(now())
+  success     Boolean
+
+  user        User  @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  @@index([userId])
+  @@index([success])
+  @@index([loggedAt])
+  @@index([ip])
+}
+
+model UserFollowList {
+  userId          String
+  followedUserId  String
+
+  user            User  @relation(name: "userFollowList_user", fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  followedUser    User  @relation(name: "userFollowList_followedUser", fields: [followedUserId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  @@id([userId, followedUserId])
+}
+
+model UserBanList {
+  userId        String
+  bannedUserId  String
+
+  user          User  @relation(name: "userBanList_user", fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  bannedUser    User  @relation(name: "userBanList_bannedUser", fields: [bannedUserId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  @@id([userId, bannedUserId])
+}
