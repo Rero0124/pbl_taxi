@@ -5,3 +5,6 @@ declare namespace NodeJS {
     readonly FRONTEND_URL: string;
   }
 }
+
+type ExpressRequest = import("express").Request;
+type ExpressResponse = import("express").Response;

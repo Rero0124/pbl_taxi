@@ -1,39 +1,6 @@
-
-import express, { Request, Response, Router } from "express";
+import express, { Router } from "express";
 import { PrismaClient, User, UserTendency } from "@prisma/client";
-
-interface GetUserInfoRequest extends Request {
-  readonly params: {
-    id: string;
-  }
-}
-
-interface PostUserCreateRequest extends Request {
-  readonly body: {
-    id: string;
-    pw: string;
-    name?: string;
-    phone?: number;
-    email?: string;
-  }
-}
-
-interface PatchUserTendencyRequest extends Request {
-  readonly body: {
-    id: string;
-    inward: boolean;
-    quickly: boolean;
-    song: boolean;
-    songName?: string;
-  }
-}
-
-interface PutUserChangePasswordRequest extends Request {
-  readonly body: {
-    id: string;
-    pw?: string;
-  }
-}
+import { GetUserInfoRequest, PatchUserTendencyRequest, PostUserCreateRequest } from "./types/user";
 
 interface UserInfo extends User {
   tendency: UserTendency | null
@@ -53,7 +20,7 @@ const defaultTendency: UserTendency = {
 /**
  * 사용자 등록
  */
-router.post('/', async (req: PostUserCreateRequest, res: Response) => {
+router.post('/', async (req: PostUserCreateRequest, res: ExpressResponse) => {
   try {
     if(req.body.name !== undefined && req.body.phone !== undefined && req.body.email !== undefined) {
       const user = await prisma.user.create({
@@ -68,7 +35,7 @@ router.post('/', async (req: PostUserCreateRequest, res: Response) => {
 
       res.status(200).json(user);
     } else {
-      new Error('type error');
+      new Error('사용자 등록 인자 부족');
     }
   } catch {
     res.status(500).send("Internal Server Error")
@@ -78,7 +45,7 @@ router.post('/', async (req: PostUserCreateRequest, res: Response) => {
 /**
  * 사용자 상세
  */
-router.get('/:id', async (req: GetUserInfoRequest, res: Response) => {
+router.get('/:id', async (req: GetUserInfoRequest, res: ExpressResponse) => {
   try {
     const userInfo: UserInfo = await prisma.user.findUniqueOrThrow({
       include: {
@@ -101,14 +68,15 @@ router.get('/:id', async (req: GetUserInfoRequest, res: Response) => {
 /**
  * 사용자 성향 수정
  */
-router.patch('/tendency', async (req: PatchUserTendencyRequest, res: Response) => {
+router.patch('/tendency', async (req: PatchUserTendencyRequest, res: ExpressResponse) => {
   try {
     const tendency = await prisma.userTendency.findUnique({
       where: {
         userId: req.body.id
       }
     });
-    const result = tendency === null ? (await prisma.userTendency.create({
+    const result = await tendency === null ? (
+      prisma.userTendency.create({
         data: {
           userId: req.body.id,
           inward: req.body.inward,
@@ -117,7 +85,83 @@ router.patch('/tendency', async (req: PatchUserTendencyRequest, res: Response) =
           songName: req.body.songName
         }
       })
-    ) : ( await prisma.userTendency.update({
+    ) : ( 
+      prisma.userTendency.update({
+        data: {
+          inward: req.body.inward,
+          quickly: req.body.quickly,
+          song: req.body.song,
+          songName: req.body.songName
+        },
+        where: {
+          userId: req.body.id
+        }
+      })
+    )
+    res.status(200).json(result);
+  } catch {
+    res.status(500).send("Internal Server Error")
+  }
+})
+
+/**
+ * 사용자 성향 수정
+ */
+router.patch('/tendency', async (req: PatchUserTendencyRequest, res: ExpressResponse) => {
+  try {
+    const tendency = await prisma.userTendency.findUnique({
+      where: {
+        userId: req.body.id
+      }
+    });
+    const result = await tendency === null ? (
+      prisma.userTendency.create({
+        data: {
+          userId: req.body.id,
+          inward: req.body.inward,
+          quickly: req.body.quickly,
+          song: req.body.song,
+          songName: req.body.songName
+        }
+      })
+    ) : ( 
+      prisma.userTendency.update({
+        data: {
+          inward: req.body.inward,
+          quickly: req.body.quickly,
+          song: req.body.song,
+          songName: req.body.songName
+        },
+        where: {
+          userId: req.body.id
+        }
+      })
+    )
+    res.status(200).json(result);
+  } catch {
+    res.status(500).send("Internal Server Error")
+  }
+})
+
+router.get('/tendency/:id', async (req: PatchUserTendencyRequest, res: ExpressResponse) => {
+  try {
+    const tendency = await prisma.userTendency.findUnique({
+      where: {
+        userId: req.body.id
+      }
+    });
+    const result = await tendency === null ? (
+      prisma.userTendency.create({
+        data: {
+          userId: req.body.id,
+          inward: req.body.inward,
+          quickly: req.body.quickly,
+          song: req.body.song,
+          songName: req.body.songName
+        }
+      })
+    ) : ( 
+      prisma.userTendency.update({
         data: {
           inward: req.body.inward,
           quickly: req.body.quickly,
