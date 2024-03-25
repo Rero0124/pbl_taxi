@@ -23,6 +23,7 @@ model User {
   email         String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime? @updatedAt
+  init          Boolean   @default(true)
 
   locate                UserLocate?
   tendency              UserTendency?

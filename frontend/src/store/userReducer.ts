@@ -5,9 +5,16 @@ export interface User {
   name?: string;
   phone?: number;
   email?: string;
-  position?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  init?: boolean;
+  tendency?: {
+    userId: string;
+    inward: boolean;
+    quickly: boolean;
+    song: boolean;
+    songName: string;
+  }
 }
 
 const userSlice = createSlice({
