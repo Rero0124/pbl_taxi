@@ -1,5 +1,13 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+export interface UserTendency {
+  userId: string;
+  inward: boolean;
+  quickly: boolean;
+  song: boolean;
+  songName: string;
+}
+
 export interface User {
   id: string;
   name?: string;
@@ -8,13 +16,7 @@ export interface User {
   createdAt?: Date;
   updatedAt?: Date;
   init?: boolean;
-  tendency?: {
-    userId: string;
-    inward: boolean;
-    quickly: boolean;
-    song: boolean;
-    songName: string;
-  }
+  tendency?: UserTendency
 }
 
 const userSlice = createSlice({
@@ -24,11 +26,17 @@ const userSlice = createSlice({
     userSet(state, action: PayloadAction<User>) {
       return action.payload
     },
+    userTendencySet(state, action: PayloadAction<UserTendency>) {
+      return {
+        ...state,
+        tendency: action.payload
+      }
+    },
     userUnset(state) {
       return {id: ''}
     }
   }
 })
 
-export const { userSet, userUnset } = userSlice.actions;
+export const { userSet, userUnset, userTendencySet } = userSlice.actions;
 export default userSlice.reducer;

@@ -1,6 +1,16 @@
-
 .display-none {
   display: none;
+}
+
+.style-label {
+  width: 33%;
+  text-align: start;
+}
+
+.style-input-container {
+  width: 66%;
+  display: flex;
+  justify-content: space-around;
 }
 
 .login-form-title, .register-form-title {
@@ -9,19 +19,20 @@
   text-align: center;
 }
 
-.login-container, .register-container {
+.login-container, .register-container, .tendency-container {
   width: 40vh;
   margin: auto;
 }
 
 .register-id-container, .register-pw-container, .register-pw-check-container, .register-name-container, 
-  .register-email-container, .register-phone-container, .login-id-container, .login-pw-container, .register-position-container {
+  .register-email-container, .register-phone-container, .login-id-container, .login-pw-container, .register-position-container,
+  .tendency-inward-container, .tendency-quickly-container, .tendency-song-container, .tendency-songName-container {
   display: flex;
   justify-content: space-between;
   padding: 10px;
 }
 
-.login-submit-container, .register-submit-container {
+.login-submit-container, .register-submit-container, .tendency-submit-container {
   padding: 10px;
 }
 

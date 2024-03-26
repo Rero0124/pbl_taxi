@@ -9,6 +9,7 @@ import Register from '../contents/Register';
 import Logout from '../contents/Logout';
 import { useState } from 'react';
 import { isMobile } from 'react-device-detect';
+import Tendency from '../contents/Tendency';
 
 const Section = (): JSX.Element => {
   const isLogin = useSelector((state: RootState) => state.user.id !== '');
@@ -28,6 +29,7 @@ const Section = (): JSX.Element => {
         <Routes>
           <Route path="/*" element={<Page404 />} />
           <Route path="/" element={<Main />} />
+          <Route path="/tendency" element={<Tendency/>} />
           <Route path="/login" element={<Navigate replace to="/" />} />
           <Route path="/register" element={<Navigate replace to="/" />} />
           <Route path="/logout" element={<Logout />}/>
