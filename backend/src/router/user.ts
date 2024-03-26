@@ -98,8 +98,8 @@ router.put('/:id/tendency', async (req: PutUserTendencyRequest, res: ExpressResp
         userId: req.params.id
       }
     });
-    const result = await tendency === null ? (
-      prisma.userTendency.create({
+    const result = tendency === null ? (
+      await prisma.userTendency.create({
         data: {
           userId: req.params.id,
           inward: req.body.inward,
@@ -109,7 +109,7 @@ router.put('/:id/tendency', async (req: PutUserTendencyRequest, res: ExpressResp
         }
       })
     ) : ( 
-      prisma.userTendency.update({
+      await prisma.userTendency.update({
         data: {
           inward: req.body.inward,
           quickly: req.body.quickly,
