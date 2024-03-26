@@ -35,6 +35,12 @@ export interface PutUserTendencyRequest extends ExpressRequest {
   }
 }
 
+export interface PatchUserInitRequest extends ExpressRequest {
+  readonly params: {
+    id: string;
+  }
+}
+
 export interface PatchUserChangePasswordRequest extends ExpressRequest {
   readonly params: {
     id: string;

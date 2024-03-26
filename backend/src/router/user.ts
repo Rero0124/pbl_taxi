@@ -1,6 +1,6 @@
 import express, { Router } from "express";
 import { PrismaClient, User, UserTendency } from "@prisma/client";
-import { GetUserInfoRequest, PostUserCreateRequest, PutUserTendencyRequest, PatchUserChangePasswordRequest, PostUserFollowCreateRequest } from "./types/user";
+import { GetUserInfoRequest, PostUserCreateRequest, PutUserTendencyRequest, PatchUserChangePasswordRequest, PostUserFollowCreateRequest, PatchUserInitRequest } from "./types/user";
 
 interface UserInfo extends User {
   tendency: UserTendency | null
@@ -65,6 +65,29 @@ router.get('/:id', async (req: GetUserInfoRequest, res: ExpressResponse) => {
   }
 })
 
+router.patch('/:id/init', async (req: PatchUserInitRequest, res: ExpressResponse) => {
+  try {
+    const userInfo: UserInfo = await prisma.user.update({
+      data: {
+        init: false
+      },
+      include: {
+        tendency: true
+      },
+      where: {
+        id: req.params.id
+      }
+    })
+    
+    defaultTendency.userId = userInfo.id;
+    if(userInfo.tendency === null) userInfo.tendency = defaultTendency;
+
+    res.status(200).json(userInfo);
+  } catch {
+    res.status(500).send("Internal Server Error")
+  }
+})
+
 /**
  * 사용자 성향 수정
  */
@@ -98,7 +121,12 @@ router.put('/:id/tendency', async (req: PutUserTendencyRequest, res: ExpressResp
         }
       })
     )
-    res.status(200).json(result);
+
+    if(result !== null) {
+      res.status(200).json(result);
+    } else {
+      new Error('성향 등록 실패');
+    }
   } catch {
     res.status(500).send("Internal Server Error")
   }
