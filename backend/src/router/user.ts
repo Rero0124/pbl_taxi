@@ -11,9 +11,9 @@ const prisma = new PrismaClient();
 
 const defaultTendency: UserTendency = {
   userId: '',
-  inward: false,
-  quickly: false,
-  song: false,
+  inward: true,
+  quickly: true,
+  song: true,
   songName: null
 }
 

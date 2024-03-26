@@ -9,6 +9,14 @@ interface UserInfo extends User {
 const router: Router = express.Router();
 const prisma = new PrismaClient();
 
+const defaultTendency: UserTendency = {
+  userId: '',
+  inward: true,
+  quickly: true,
+  song: true,
+  songName: null
+}
+
 /**
  * 세션 생성
  */
@@ -25,6 +33,8 @@ router.post('/', async (req: AuthPostRequest, res: ExpressResponse) => {
           pw: req.body.pw
         }
       });
+
+      if(user.tendency === null) user.tendency = defaultTendency;
 
       await prisma.userSession.deleteMany({
         where: {
@@ -49,7 +59,7 @@ router.post('/', async (req: AuthPostRequest, res: ExpressResponse) => {
           userId: req.body.id
         }
       })).id
-        
+
       res.status(200).json({ session: sessionId, user: user });
     } else {
       new Error("세션 생성 인자 부족");
@@ -89,6 +99,8 @@ router.get('/:id', async (req: AuthGetRequest, res: ExpressResponse) => {
           id: session.userId
         }
       });
+
+      if(user.tendency === null) user.tendency = defaultTendency;
 
       res.status(200).json({ session: session.id, user: user });
     } else {
