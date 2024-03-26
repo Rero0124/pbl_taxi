@@ -14,19 +14,33 @@ export interface PostUserCreateRequest extends ExpressRequest {
   }
 }
 
-export interface PatchUserTendencyRequest extends ExpressRequest {
-  readonly body: {
+export interface PostUserFollowCreateRequest extends ExpressRequest {
+  readonly params: {
     id: string;
-    inward: boolean;
-    quickly: boolean;
-    song: boolean;
-    songName?: string;
+  }
+  readonly body: {
+    userId: string;
   }
 }
 
-export interface PutUserChangePasswordRequest extends ExpressRequest {
-  readonly body: {
+export interface PutUserTendencyRequest extends ExpressRequest {
+  readonly params: {
     id: string;
-    pw?: string;
+  }
+  readonly body: {
+    inward: boolean;
+    quickly: boolean;
+    song: boolean;
+    songName: string | null;
+  }
+}
+
+export interface PatchUserChangePasswordRequest extends ExpressRequest {
+  readonly params: {
+    id: string;
+  }
+  readonly body: {
+    pw: string;
+    npw: string;
   }
 }
