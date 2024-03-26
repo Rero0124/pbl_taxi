@@ -7,9 +7,14 @@ import { RootState } from '../../store/store';
 import Login from '../contents/Login';
 import Register from '../contents/Register';
 import Logout from '../contents/Logout';
+import { useState } from 'react';
+import { isMobile } from 'react-device-detect';
 
 const Section = (): JSX.Element => {
   const isLogin = useSelector((state: RootState) => state.user.id !== '');
+  const [loginType, setLoginType] = useState<string>("customer");
+
+  if(isMobile) setLoginType("driver");
 
   return (
     <div className="section">

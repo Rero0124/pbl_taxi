@@ -9,6 +9,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^27.5.2",
     "@types/node": "^16.18.91",
+    "@types/ol": "^7.0.0",
     "@types/react": "^18.2.69",
     "@types/react-dom": "^18.2.22",
     "@types/redux": "^3.6.0",

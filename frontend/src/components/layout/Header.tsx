@@ -9,16 +9,16 @@ const Header = (): JSX.Element => {
 
   return (
     <div className="header">
-      <div className="header-logo-container">
-        <img className="header-logo"></img>
+      <div className="header-title-container">
+        <img className="header-logo" alt="로고"></img>
         <p className="header-title">
-          JOB-MANAGEMENT <span className="header-title-span">0.1</span>
+          PBL_TAXT <span className="header-title-span">0.1</span>
         </p>
       </div>
       {
         isLogin ? (
           <div className="header-logout-container">
-            <Link className="header-logout-link" to="/logout">로그아웃</Link>
+            <p><Link className="header-logout-link" to="/logout">로그아웃</Link></p>
           </div>
         ) : (<></>)
       }
