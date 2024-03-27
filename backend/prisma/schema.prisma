@@ -25,6 +25,7 @@ model User {
   updatedAt     DateTime? @updatedAt
   init          Boolean   @default(true)
 
+  payment               UserPayment?
   locate                UserLocate?
   tendency              UserTendency?
   session               UserSession?
@@ -36,6 +37,18 @@ model User {
 
   @@index([name])
   @@index([createdAt])
+}
+
+model UserPayment {
+  userId          String   @id
+  realName        String
+  personalNumber  Int
+  bankName        String
+  bankNumber      String
+  
+  user            User    @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  @@index([bankName, bankNumber])
 }
 
 model UserLocate {
