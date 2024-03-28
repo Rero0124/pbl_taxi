@@ -8,11 +8,13 @@ import VectorSource from "ol/source/Vector";
 import Icon from "ol/style/Icon";
 import Style from "ol/style/Style";
 import { CSSProperties, useEffect, useRef, useState } from "react";
-import useGeolocation from "react-hook-geolocation";
 import markerImage from "../../images/marker.png";
 import { Coordinate } from "ol/coordinate";
 import fetchJsonp from "fetch-jsonp";
 import Text from "ol/style/Text";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../store/store";
+import { GeoLocationPosition, locationDeny, locationSet } from "../../store/locationReducer";
 
 interface AddressResponse {
   response: {
@@ -59,24 +61,24 @@ const addressSearch = async (coordinate: Coordinate): Promise<AddressResponse> =
 }
 
 const Main = () => {
-  const geolocation = useGeolocation();
+  const dispatch = useDispatch();
+  const location = useSelector((state: RootState) => state.location);
+
   const [map, setMap] = useState<Map | null>();
   const [layers, setLayers] = useState<Layer[]>([]);
   const [addLayer, setAddLayer] = useState<Layer | null>();
-  const [center, setCenter] = useState<Coordinate | [number, number]>([126.97831737391309, 37.566619172927574]);
   const [resetMap, setResetMap] = useState<boolean>(false);
   const init = useRef(true);
-  const isGetLocation = useRef(true);
 
   useEffect(() => {
     if(resetMap) {
       (async () => {
-        const centerAddress = await addressSearch(center)
+        const centerAddress = await addressSearch([location.location.longitude, location.location.latitude])
         const centerAddressText = centerAddress.response.result[centerAddress.response.result.length === 2 ? 1 : 0].text
         const markerSource = new VectorSource();
       
         const markerFeature = new Feature({
-          geometry: new Point(center)
+          geometry: new Point([location.location.longitude, location.location.latitude])
         })
       
         const markerStyle = new Style({
@@ -103,7 +105,7 @@ const Main = () => {
           target: 'map',
           layers: [markerLayer, baseLayer],
           view: new View({
-            center: center,
+            center: [location.location.longitude, location.location.latitude],
             zoom: 16,
             minZoom: 7,
             maxZoom: 18,
@@ -130,23 +132,30 @@ const Main = () => {
   }, [resetMap])
 
   useEffect(() => {
-    if(isGetLocation.current) {
-      if(geolocation.error?.PERMISSION_DENIED) {
-        isGetLocation.current = false;
+    if(location.isEnable) {
+      navigator.geolocation.getCurrentPosition((geolocation) => {
         if(init.current) {
-          setCenter([126.97831737391309, 37.566619172927574]);
+          const locatePosition: GeoLocationPosition = geolocation.coords
+          dispatch(locationSet(locatePosition));
           init.current = false;
           setResetMap(true);
+          const timer = setInterval(() => {
+            navigator.geolocation.getCurrentPosition((geoloc) => {
+              const locpos: GeoLocationPosition = geoloc.coords
+              dispatch(locationSet(locpos))
+            }, (err) => {
+              if(err.code === err.PERMISSION_DENIED) {
+                dispatch(locationDeny());
+                clearInterval(timer);
+              }
+            })
+          }, 5000);
         }
-      } else if(geolocation.longitude && geolocation.latitude) {
-        setCenter([geolocation.longitude, geolocation.latitude]);
-        if(init.current) {
-          init.current = false;
-          setResetMap(true);
-        }
-      }
+      }, (err) => {
+        if(err.code === err.PERMISSION_DENIED) { dispatch(locationDeny()) }
+      })
     }
-  }, [geolocation])
+  }, [])
   
 
   useEffect(() => {
