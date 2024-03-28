@@ -1,5 +1,4 @@
 import { Route, Routes, Navigate } from 'react-router-dom';
-import Main from '../contents/Main';
 import Page404 from '../pages/Page404';
 import '../../styles/Layout.css'
 import { useSelector } from 'react-redux';
@@ -10,6 +9,7 @@ import Logout from '../contents/Logout';
 import { useState } from 'react';
 import { isMobile } from 'react-device-detect';
 import Tendency from '../contents/Tendency';
+import MapPage from '../contents/MapPage';
 
 const Section = (): JSX.Element => {
   const isLogin = useSelector((state: RootState) => state.user.id !== '');
@@ -28,7 +28,7 @@ const Section = (): JSX.Element => {
       ) : (
         <Routes>
           <Route path="/*" element={<Page404 />} />
-          <Route path="/" element={<Main />} />
+          <Route path="/map" element={<MapPage />} />
           <Route path="/tendency" element={<Tendency/>} />
           <Route path="/login" element={<Navigate replace to="/" />} />
           <Route path="/register" element={<Navigate replace to="/" />} />

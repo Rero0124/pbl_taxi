@@ -60,7 +60,7 @@ const addressSearch = async (coordinate: Coordinate): Promise<AddressResponse> =
   return data;
 }
 
-const Main = () => {
+const MapPage = () => {
   const dispatch = useDispatch();
   const location = useSelector((state: RootState) => state.location);
 
@@ -174,4 +174,4 @@ const Main = () => {
   )
 }
 
-export default Main;
+export default MapPage;
