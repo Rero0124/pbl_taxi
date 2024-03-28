@@ -7,10 +7,10 @@ import { XYZ } from "ol/source";
 import VectorSource from "ol/source/Vector";
 import Icon from "ol/style/Icon";
 import Style from "ol/style/Style";
-import { CSSProperties, useCallback, useEffect, useRef, useState } from "react";
+import { CSSProperties, useEffect, useRef, useState } from "react";
 import useGeolocation from "react-hook-geolocation";
 import markerImage from "../../images/marker.png";
-import { Coordinate, add } from "ol/coordinate";
+import { Coordinate } from "ol/coordinate";
 import fetchJsonp from "fetch-jsonp";
 import Text from "ol/style/Text";
 
