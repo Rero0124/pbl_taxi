@@ -1,6 +1,6 @@
 import express, { Router } from "express";
 import { PrismaClient, User, UserTendency } from "@prisma/client";
-import { GetUserInfoRequest, PostUserCreateRequest, PutUserTendencyRequest, PatchUserChangePasswordRequest, PostUserFollowCreateRequest, PatchUserInitRequest } from "./types/user";
+import { GetUserInfoRequest, PostUserCreateRequest, PutUserTendencyRequest, PatchUserChangePasswordRequest, PostUserFollowCreateRequest, PatchUserInitRequest, PutUserLocationRequest } from "./types/user";
 
 interface UserInfo extends User {
   tendency: UserTendency | null
@@ -65,6 +65,9 @@ router.get('/:id', async (req: GetUserInfoRequest, res: ExpressResponse) => {
   }
 })
 
+/**
+ * 사용자 초기 해제
+ */
 router.patch('/:id/init', async (req: PatchUserInitRequest, res: ExpressResponse) => {
   try {
     const userInfo: UserInfo = await prisma.user.update({
@@ -83,6 +86,24 @@ router.patch('/:id/init', async (req: PatchUserInitRequest, res: ExpressResponse
     if(userInfo.tendency === null) userInfo.tendency = defaultTendency;
 
     res.status(200).json(userInfo);
+  } catch {
+    res.status(500).send("Internal Server Error")
+  }
+})
+
+router.put('/:id/locate', async (req: PutUserLocationRequest, res: ExpressResponse) => {
+  try {
+    const locate = await prisma.userLocate.findUnique({
+      where: {
+        userId: req.params.id
+      }
+    });
+    
+    const result = await prisma.$executeRawUnsafe(locate === null ? 
+                      `INSERT INTO "UserLocate" ("userId", "geom") VALUES ('${req.params.id}', ST_GeomFromText('Point(${req.body.x} ${req.body.y})', 4326))` : 
+                      `UPDATE "UserLocate" SET "geom" = ST_GeomFromText('Point(${req.body.x} ${req.body.y})', 4326) WHERE "userId" = '${req.params.id}'`)
+
+    res.status(200).json(result);
   } catch {
     res.status(500).send("Internal Server Error")
   }
@@ -132,6 +153,10 @@ router.put('/:id/tendency', async (req: PutUserTendencyRequest, res: ExpressResp
   }
 })
 
+/**
+ * 사용자 비밀번호 변경
+ */
+
 router.patch('/:id/password', async (req: PatchUserChangePasswordRequest, res: ExpressResponse) => {
   try {
     const user = await prisma.user.findUnique({
@@ -159,6 +184,10 @@ router.patch('/:id/password', async (req: PatchUserChangePasswordRequest, res: E
   }
 })
 
+/**
+ * 사용자 팔로우 리스트 검색
+ */
+
 router.get('/:id/follow', async (req: GetUserInfoRequest, res: ExpressResponse) => {
   try {
     const followList = await prisma.userFollowList.findMany({
@@ -171,6 +200,10 @@ router.get('/:id/follow', async (req: GetUserInfoRequest, res: ExpressResponse) 
     res.status(500).send("Internal Server Error")
   }
 })
+
+/**
+ * 사용자 밴 리스트 검색
+ */
 
 router.get('/:id/ban', async (req: GetUserInfoRequest, res: ExpressResponse) => {
   try {
@@ -185,6 +218,10 @@ router.get('/:id/ban', async (req: GetUserInfoRequest, res: ExpressResponse) => 
   }
 })
 
+/**
+ * 사용자 팔로우
+ */
+
 router.post('/:id/follow', async (req: PostUserFollowCreateRequest, res: ExpressResponse) => {
   try {
     const follow = await prisma.userFollowList.create({
@@ -198,6 +235,10 @@ router.post('/:id/follow', async (req: PostUserFollowCreateRequest, res: Express
     res.status(500).send("Internal Server Error")
   }
 })
+
+/**
+ * 사용자 밴
+ */
 
 router.post('/:id/ban', async (req: PostUserFollowCreateRequest, res: ExpressResponse) => {
   try {

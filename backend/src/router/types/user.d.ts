@@ -41,6 +41,16 @@ export interface PatchUserInitRequest extends ExpressRequest {
   }
 }
 
+export interface PutUserLocationRequest extends ExpressRequest {
+  readonly params: {
+    id: string;
+  }
+  readonly body: {
+    x: number;
+    y: number;
+  }
+}
+
 export interface PatchUserChangePasswordRequest extends ExpressRequest {
   readonly params: {
     id: string;

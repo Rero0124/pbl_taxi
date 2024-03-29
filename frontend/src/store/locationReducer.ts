@@ -11,11 +11,13 @@ export interface GeoLocationPosition {
 }
 
 export interface GeoLocation {
+  readonly schduler: NodeJS.Timer | null;
   readonly location: GeoLocationPosition;
   readonly isEnable: boolean;
 }
 
 const initLocation: GeoLocation = {
+  schduler: null,
   location: {
     accuracy: 100,
     altitude: null,
@@ -34,16 +36,24 @@ const locationSlice = createSlice({
   reducers: {
     locationSet(state, action: PayloadAction<GeoLocationPosition | undefined>) {
       const location = action.payload ? action.payload : initLocation.location;
-      return { location: location, isEnable: action.payload !== undefined };
+      return { schduler: state.schduler, location: location, isEnable: action.payload !== undefined };
+    },
+    schdulerSet(state, action: PayloadAction<NodeJS.Timer>) {
+      return { schduler: action.payload, location: state.location, isEnable: state.isEnable };
     },
     locationUnSet(state) {
-      return { location: initLocation.location, isEnable: true };
+      return { schduler: state.schduler, location: initLocation.location, isEnable: true };
+    },
+    schdulerUnSet(state) {
+      if(state.schduler !== null) clearInterval(state.schduler);
+      return { schduler: initLocation.schduler, location: state.location, isEnable: state.isEnable };
     },
     locationDeny(state) {
-      return { location: initLocation.location, isEnable: false };
+      if(state.schduler !== null) clearInterval(state.schduler);
+      return { schduler: state.schduler, location: initLocation.location, isEnable: false };
     }
   }
 })
 
-export const { locationSet, locationUnSet, locationDeny } = locationSlice.actions;
+export const { locationSet, schdulerSet, locationUnSet, schdulerUnSet, locationDeny } = locationSlice.actions;
 export default locationSlice.reducer;

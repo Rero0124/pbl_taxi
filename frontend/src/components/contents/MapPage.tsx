@@ -14,7 +14,7 @@ import fetchJsonp from "fetch-jsonp";
 import Text from "ol/style/Text";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import { GeoLocationPosition, locationDeny, locationSet } from "../../store/locationReducer";
+import { GeoLocationPosition, locationDeny, locationSet, schdulerSet, schdulerUnSet } from "../../store/locationReducer";
 
 interface AddressResponse {
   response: {
@@ -62,6 +62,7 @@ const addressSearch = async (coordinate: Coordinate): Promise<AddressResponse> =
 
 const MapPage = () => {
   const dispatch = useDispatch();
+  const user = useSelector((state: RootState) => state.user);
   const location = useSelector((state: RootState) => state.location);
 
   const [map, setMap] = useState<Map | null>();
@@ -69,6 +70,26 @@ const MapPage = () => {
   const [addLayer, setAddLayer] = useState<Layer | null>();
   const [resetMap, setResetMap] = useState<boolean>(false);
   const init = useRef(true);
+
+  const updateGeoLocation = async (callback?: Function) => {
+    navigator.geolocation.getCurrentPosition((geoloc) => {
+      const locpos: GeoLocationPosition = geoloc.coords
+      dispatch(locationSet(locpos))
+      if(callback) callback();
+      fetch(`${process.env.REACT_APP_BACKEND_URL}/user/${user.id}/locate`, {
+        method: 'PUT',
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ x: locpos.longitude, y: locpos.latitude })
+      });
+    }, (err) => {
+      if(err.code === err.PERMISSION_DENIED) {
+        dispatch(schdulerUnSet());
+        dispatch(locationDeny());
+      }
+    })
+  }
 
   useEffect(() => {
     if(resetMap) {
@@ -133,27 +154,16 @@ const MapPage = () => {
 
   useEffect(() => {
     if(location.isEnable) {
-      navigator.geolocation.getCurrentPosition((geolocation) => {
-        if(init.current) {
-          const locatePosition: GeoLocationPosition = geolocation.coords
-          dispatch(locationSet(locatePosition));
+      if(init.current) {
+        updateGeoLocation(() => {
           init.current = false;
           setResetMap(true);
-          const timer = setInterval(() => {
-            navigator.geolocation.getCurrentPosition((geoloc) => {
-              const locpos: GeoLocationPosition = geoloc.coords
-              dispatch(locationSet(locpos))
-            }, (err) => {
-              if(err.code === err.PERMISSION_DENIED) {
-                dispatch(locationDeny());
-                clearInterval(timer);
-              }
-            })
-          }, 5000);
-        }
-      }, (err) => {
-        if(err.code === err.PERMISSION_DENIED) { dispatch(locationDeny()) }
-      })
+        });
+      }
+      const timer = setInterval(updateGeoLocation, 5000);
+      dispatch(schdulerSet(timer));
+    } else {
+      dispatch(schdulerUnSet());
     }
   }, [])
   
