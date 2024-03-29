@@ -16,6 +16,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { GeoLocationPosition, locationDeny, locationSet, schdulerSet, schdulerUnSet } from "../../store/locationReducer";
 
+interface UserLocateAndTendency {
+  userId: string,
+  geom: string,
+  distance: number,
+  inward: boolean,
+  quickly: boolean,
+  song: boolean,
+  songName: string | null
+}
+
 interface AddressResponse {
   response: {
     result: {
@@ -69,6 +79,7 @@ const MapPage = () => {
   const [layers, setLayers] = useState<Layer[]>([]);
   const [addLayer, setAddLayer] = useState<Layer | null>();
   const [resetMap, setResetMap] = useState<boolean>(false);
+  const [nearUsers, setNearUsers] = useState<UserLocateAndTendency[]>([]);
   const init = useRef(true);
 
   const updateGeoLocation = async (callback?: Function) => {
@@ -143,6 +154,13 @@ const MapPage = () => {
             text: addressText,
             scale: 1,
           }));
+          const params = {
+            x: e.coordinate[0].toString(),
+            y: e.coordinate[1].toString()
+          };
+          const query = new URLSearchParams(params).toString()
+          const users: UserLocateAndTendency[] = await fetch(`${process.env.REACT_APP_BACKEND_URL}/search/near/user/${user.id}/locate?${query}`).then(res => res.json());
+          setNearUsers(users);
         });
 
         setMap(newMap);

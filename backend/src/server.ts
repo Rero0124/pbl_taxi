@@ -4,6 +4,7 @@ import express from 'express';
 import cors from 'cors';
 import user from './router/user';
 import auth from './router/auth';
+import search from './router/search';
 
 dotenv.config();
 
@@ -28,5 +29,6 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use('/user', user);
 app.use('/auth', auth);
+app.use('/search', search);
 
 app.listen(port, () => { console.log('서버 시작') });

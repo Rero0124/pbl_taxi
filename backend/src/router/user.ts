@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import { PrismaClient, User, UserTendency } from "@prisma/client";
+import { Prisma, PrismaClient, User, UserTendency } from "@prisma/client";
 import { GetUserInfoRequest, PostUserCreateRequest, PutUserTendencyRequest, PatchUserChangePasswordRequest, PostUserFollowCreateRequest, PatchUserInitRequest, PutUserLocationRequest } from "./types/user";
 
 interface UserInfo extends User {
@@ -98,10 +98,12 @@ router.put('/:id/locate', async (req: PutUserLocationRequest, res: ExpressRespon
         userId: req.params.id
       }
     });
-    
-    const result = await prisma.$executeRawUnsafe(locate === null ? 
+
+    const query = Prisma.raw( locate === null ? 
                       `INSERT INTO "UserLocate" ("userId", "geom") VALUES ('${req.params.id}', ST_GeomFromText('Point(${req.body.x} ${req.body.y})', 4326))` : 
                       `UPDATE "UserLocate" SET "geom" = ST_GeomFromText('Point(${req.body.x} ${req.body.y})', 4326) WHERE "userId" = '${req.params.id}'`)
+
+    const result = await prisma.$executeRaw(query)
 
     res.status(200).json(result);
   } catch {
