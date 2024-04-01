@@ -5,8 +5,10 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "declaration": true,
+    "declarationDir": "./types",
     "forceConsistentCasingInFileNames": true,
-    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "typeRoots": ["./node_modules/@types", "src/types"],
     "types": ["global"]
   },
   "include": [

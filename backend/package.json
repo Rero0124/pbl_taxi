@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --watch 'src/**/*.ts' --exec ts-node src/server.ts",
-    "prod": "nodemon --watch 'src/**/*.ts' --exec ts-node src/server.ts",
+    "start": "nodemon --watch 'src/**/*.ts' --exec ts-node --files src/server.ts",
+    "prod": "nodemon --watch 'src/**/*.ts' --exec ts-node --files src/server.ts",
     "pull:dev": "dotenv -e .env.development -- npx prisma db pull",
     "pull:prod": "dotenv -e .env.production -- npx prisma db pull",
     "push:dev": "dotenv -e .env.development -- npx prisma db push",
