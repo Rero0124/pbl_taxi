@@ -1,13 +1,9 @@
-export interface AuthGetRequest extends ExpressRequest {
-  readonly params: {
-    id: string;
-  }
+interface SessionIdParam {
+  id: string
 }
 
-export interface AuthPostRequest extends ExpressRequest {
-  readonly body: {
-    id: string;
-    pw?: string;
-    sessionId?: string
-  }
+interface SessionBody {
+  id: string;
+  pw?: string;
+  sessionId?: string
 }

@@ -1,6 +1,5 @@
 import express, { Router } from "express";
 import { Prisma, PrismaClient, User, UserTendency } from "@prisma/client";
-import { GetUserInfoRequest, PostUserCreateRequest, PutUserTendencyRequest, PatchUserChangePasswordRequest, PostUserFollowCreateRequest, PatchUserInitRequest, PutUserLocationRequest } from "./types/user";
 
 interface UserInfo extends User {
   tendency: UserTendency | null
@@ -20,7 +19,7 @@ const defaultTendency: UserTendency = {
 /**
  * 사용자 등록
  */
-router.post('/', async (req: PostUserCreateRequest, res: ExpressResponse) => {
+router.post('/', async (req: PostRequest<{}, UserCreateBody>, res: ExpressResponse) => {
   try {
     if(req.body.name !== undefined && req.body.phone !== undefined && req.body.email !== undefined) {
       const user = await prisma.user.create({
@@ -45,7 +44,7 @@ router.post('/', async (req: PostUserCreateRequest, res: ExpressResponse) => {
 /**
  * 사용자 상세
  */
-router.get('/:id', async (req: GetUserInfoRequest, res: ExpressResponse) => {
+router.get('/:id', async (req: GetRequest<UserParams>, res: ExpressResponse) => {
   try {
     const userInfo: UserInfo = await prisma.user.findUniqueOrThrow({
       include: {
@@ -68,7 +67,7 @@ router.get('/:id', async (req: GetUserInfoRequest, res: ExpressResponse) => {
 /**
  * 사용자 초기 해제
  */
-router.patch('/:id/init', async (req: PatchUserInitRequest, res: ExpressResponse) => {
+router.patch('/:id/init', async (req: PatchRequest<UserParams>, res: ExpressResponse) => {
   try {
     const userInfo: UserInfo = await prisma.user.update({
       data: {
@@ -91,7 +90,7 @@ router.patch('/:id/init', async (req: PatchUserInitRequest, res: ExpressResponse
   }
 })
 
-router.put('/:id/locate', async (req: PutUserLocationRequest, res: ExpressResponse) => {
+router.put('/:id/locate', async (req: PutRequest<UserParams, UserLocateBody>, res: ExpressResponse) => {
   try {
     const locate = await prisma.userLocate.findUnique({
       where: {
@@ -114,7 +113,7 @@ router.put('/:id/locate', async (req: PutUserLocationRequest, res: ExpressRespon
 /**
  * 사용자 성향 수정
  */
-router.put('/:id/tendency', async (req: PutUserTendencyRequest, res: ExpressResponse) => {
+router.put('/:id/tendency', async (req: PutRequest<UserParams, UserTendencyBody>, res: ExpressResponse) => {
   try {
     const tendency = await prisma.userTendency.findUnique({
       where: {
@@ -159,7 +158,7 @@ router.put('/:id/tendency', async (req: PutUserTendencyRequest, res: ExpressResp
  * 사용자 비밀번호 변경
  */
 
-router.patch('/:id/password', async (req: PatchUserChangePasswordRequest, res: ExpressResponse) => {
+router.patch('/:id/password', async (req: PatchRequest<UserParams, UserChangePasswordBody>, res: ExpressResponse) => {
   try {
     const user = await prisma.user.findUnique({
       where: {
@@ -190,7 +189,7 @@ router.patch('/:id/password', async (req: PatchUserChangePasswordRequest, res: E
  * 사용자 팔로우 리스트 검색
  */
 
-router.get('/:id/follow', async (req: GetUserInfoRequest, res: ExpressResponse) => {
+router.get('/:id/follow', async (req: GetRequest<UserParams>, res: ExpressResponse) => {
   try {
     const followList = await prisma.userFollowList.findMany({
       where: {
@@ -207,7 +206,7 @@ router.get('/:id/follow', async (req: GetUserInfoRequest, res: ExpressResponse) 
  * 사용자 밴 리스트 검색
  */
 
-router.get('/:id/ban', async (req: GetUserInfoRequest, res: ExpressResponse) => {
+router.get('/:id/ban', async (req: GetRequest<UserParams>, res: ExpressResponse) => {
   try {
     const banList = await prisma.userBanList.findMany({
       where: {
@@ -224,7 +223,7 @@ router.get('/:id/ban', async (req: GetUserInfoRequest, res: ExpressResponse) => 
  * 사용자 팔로우
  */
 
-router.post('/:id/follow', async (req: PostUserFollowCreateRequest, res: ExpressResponse) => {
+router.post('/:id/follow', async (req: PostRequest<UserParams, TargetUserBody>, res: ExpressResponse) => {
   try {
     const follow = await prisma.userFollowList.create({
       data: {
@@ -242,7 +241,7 @@ router.post('/:id/follow', async (req: PostUserFollowCreateRequest, res: Express
  * 사용자 밴
  */
 
-router.post('/:id/ban', async (req: PostUserFollowCreateRequest, res: ExpressResponse) => {
+router.post('/:id/ban', async (req: PostRequest<UserParams, TargetUserBody>, res: ExpressResponse) => {
   try {
     const ban = await prisma.userBanList.create({
       data: {

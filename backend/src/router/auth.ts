@@ -1,6 +1,5 @@
 import express, { Router } from "express";
 import { PrismaClient, User, UserSession, UserTendency } from "@prisma/client";
-import { AuthGetRequest, AuthPostRequest } from "./types/auth";
 
 interface UserInfo extends User {
   tendency: UserTendency | null
@@ -20,7 +19,7 @@ const defaultTendency: UserTendency = {
 /**
  * 세션 생성
  */
-router.post('/', async (req: AuthPostRequest, res: ExpressResponse) => {
+router.post('/', async (req: PostRequest<SessionIdParam, SessionBody>, res: ExpressResponse) => {
   try {
     if(req.body.pw !== undefined && req.ip !== undefined) {
       const ip = req.ip === '::1' ? '127.0.0.1' : req.ip;
@@ -81,7 +80,7 @@ router.post('/', async (req: AuthPostRequest, res: ExpressResponse) => {
 /**
  * 세션 검색
  */
-router.get('/:id', async (req: AuthGetRequest, res: ExpressResponse) => {
+router.get('/:id', async (req: GetRequest<SessionIdParam>, res: ExpressResponse) => {
   try {
     if(req.ip !== undefined) {
       const ip = req.ip === '::1' ? '127.0.0.1' : req.ip;
@@ -114,7 +113,7 @@ router.get('/:id', async (req: AuthGetRequest, res: ExpressResponse) => {
 /**
  * 세션 제거
  */
-router.post('/delete', async (req: AuthPostRequest, res: ExpressResponse) => {
+router.post('/delete', async (req: PostRequest<SessionIdParam, SessionBody>, res: ExpressResponse) => {
   try {
     if(req.ip !== undefined) {
       const ip = req.ip === '::1' ? '127.0.0.1' : req.ip;

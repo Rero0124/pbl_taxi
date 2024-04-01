@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import express, { Router } from "express";
-import { GetSearchRequest } from "./types/search";
 
 const router: Router = express.Router();
 const prisma = new PrismaClient();
@@ -15,7 +14,11 @@ interface UserLocateAndTendency {
   songName: string | null
 }
 
-router.get('/near/user/:id/locate', async (req: GetSearchRequest, res: ExpressResponse) => {
+
+/**
+ * 근처에 있는 택시기사 검색
+ */
+router.get('/near/user/:id/locate', async (req: GetRequest<UserIdParam, LocateBody>, res: ExpressResponse) => {
   try{
     const result = await prisma.$queryRawUnsafe<UserLocateAndTendency>(`
                       SELECT 

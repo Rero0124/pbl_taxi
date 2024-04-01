@@ -1,9 +1,8 @@
-export interface GetSearchRequest extends ExpressRequest {
-  readonly params: {
-    id: string;
-  }
-  readonly query: {
-    x: string;
-    y: string;
-  }
+interface UserIdParam {
+  id: string
+}
+
+interface LocateBody {
+  x: string;
+  y: string;
 }

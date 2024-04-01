@@ -1,62 +1,32 @@
-export interface GetUserInfoRequest extends ExpressRequest {
-  readonly params: {
-    id: string;
-  }
+interface UserParams {
+  id: string;
 }
 
-export interface PostUserCreateRequest extends ExpressRequest {
-  readonly body: {
-    id: string;
-    pw: string;
-    name?: string;
-    phone?: number;
-    email?: string;
-  }
+interface UserCreateBody {
+  id: string;
+  pw: string;
+  name?: string;
+  phone?: number;
+  email?: string;
 }
 
-export interface PostUserFollowCreateRequest extends ExpressRequest {
-  readonly params: {
-    id: string;
-  }
-  readonly body: {
-    userId: string;
-  }
+interface UserTendencyBody {
+  inward: boolean;
+  quickly: boolean;
+  song: boolean;
+  songName: string | null;
 }
 
-export interface PutUserTendencyRequest extends ExpressRequest {
-  readonly params: {
-    id: string;
-  }
-  readonly body: {
-    inward: boolean;
-    quickly: boolean;
-    song: boolean;
-    songName: string | null;
-  }
+interface UserLocateBody {
+  x: number;
+  y: number;
 }
 
-export interface PatchUserInitRequest extends ExpressRequest {
-  readonly params: {
-    id: string;
-  }
+interface UserChangePasswordBody {
+  pw: string;
+  npw: string;
 }
 
-export interface PutUserLocationRequest extends ExpressRequest {
-  readonly params: {
-    id: string;
-  }
-  readonly body: {
-    x: number;
-    y: number;
-  }
-}
-
-export interface PatchUserChangePasswordRequest extends ExpressRequest {
-  readonly params: {
-    id: string;
-  }
-  readonly body: {
-    pw: string;
-    npw: string;
-  }
+interface TargetUserBody {
+  userId: string;
 }
