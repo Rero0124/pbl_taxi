@@ -15,20 +15,20 @@ interface GetRequest<Params = any, Query = any> extends ExpressRequest {
 }
 
 interface PostRequest<Params = any, Body = any> extends ExpressRequest {
-  readonly params: T
-  readonly body: K
+  readonly params: Params
+  readonly body: Body
 }
 
 interface PatchRequest<Params = any, Body = any> extends ExpressRequest {
-  readonly params: T
-  readonly body: K
+  readonly params: Params
+  readonly body: Body
 }
 
 interface PutRequest<Params = any, Body = any> extends ExpressRequest {
-  readonly params: T
-  readonly body: K
+  readonly params: Params
+  readonly body: Body
 }
 
 interface DeleteRequest<Params = any> extends ExpressRequest {
-  readonly params: T
+  readonly params: Params
 }

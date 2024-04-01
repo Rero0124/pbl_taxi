@@ -74,14 +74,14 @@ const MapPage = () => {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
   const location = useSelector((state: RootState) => state.location);
-
+  
   const [map, setMap] = useState<Map | null>();
   const [layers, setLayers] = useState<Layer[]>([]);
   const [addLayer, setAddLayer] = useState<Layer | null>();
   const [resetMap, setResetMap] = useState<boolean>(false);
   const [nearUsers, setNearUsers] = useState<UserLocateAndTendency[]>([]);
   const init = useRef(true);
-
+  
   const updateGeoLocation = async (callback?: Function) => {
     navigator.geolocation.getCurrentPosition((geoloc) => {
       const locpos: GeoLocationPosition = geoloc.coords
@@ -160,6 +160,17 @@ const MapPage = () => {
           };
           const query = new URLSearchParams(params).toString()
           const users: UserLocateAndTendency[] = await fetch(`${process.env.REACT_APP_BACKEND_URL}/search/near/user/${user.id}/locate?${query}`).then(res => res.json());
+          fetch(`${process.env.REACT_APP_BACKEND_URL}/driver/message`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              message: "테스트임",
+              messageType: "search",
+              userIds: [user.id]
+            })
+          })
           setNearUsers(users);
         });
 
