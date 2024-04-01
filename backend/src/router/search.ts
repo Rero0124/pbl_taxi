@@ -26,6 +26,8 @@ router.get('/near/user/:id/locate', async (req: GetRequest<UserIdParam, LocateBo
                       FROM 
                         (
                           SELECT
+                            usr."name",
+                            usr."phone",
                             loc."userId",
                             st_astext(loc."geom") AS "geom",
                             loc."distance",
@@ -52,6 +54,8 @@ router.get('/near/user/:id/locate', async (req: GetRequest<UserIdParam, LocateBo
                             ) loc
                             LEFT OUTER JOIN "UserTendency" AS ten
                               ON loc."userId" = ten."userId"
+                            LEFT JOIN "User" AS usr
+                              ON loc."userId" = usr."id"
                         ) AS result`);
 
     res.status(200).json(result);
