@@ -15,6 +15,7 @@ import Text from "ol/style/Text";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { GeoLocationPosition, locationDeny, locationSet, schdulerSet, schdulerUnSet } from "../../store/locationReducer";
+import { useSearchParams } from "react-router-dom";
 
 interface UserLocateAndTendency {
   userId: string,
@@ -48,6 +49,34 @@ interface AddressResponse {
   }
 }
 
+interface LocateResponse {
+  response: {
+    result: {
+      crs: string;
+      type: string;
+      items: {
+        id: number;
+        title?: string;
+        category?: string;
+        district?: string;
+        address?: {
+          zipcode?: string,
+          category?: string,
+          road: string,
+          parcel: string;
+          bldnm?: string;
+          bldnmdc?: string;
+        };
+        geometry?: string;
+        point: {
+          x: number;
+          y: number;
+        };
+      }[]
+    }
+  }
+}
+
 const style: CSSProperties = {
   width: "100%",
   height: "84vh"
@@ -70,15 +99,24 @@ const addressSearch = async (coordinate: Coordinate): Promise<AddressResponse> =
   return data;
 }
 
+const locateSearch = async (searchTxt: string): Promise<LocateResponse> => {
+  const getUrl = (type: string) => `https://api.vworld.kr/req/search?service=search&request=search&version=2.0&crs=EPSG:4326&query=${searchTxt}&type=${type}&format=json&errorformat=json&key=${process.env.REACT_APP_VWORLD_KEY}`
+  
+  const data: LocateResponse = await (await fetchJsonp(getUrl("place"))).json();
+  return data;
+}
+
 const MapPage = () => {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
   const location = useSelector((state: RootState) => state.location);
   
+  const [searchParams, setSearchParams] = useSearchParams();
   const [map, setMap] = useState<Map | null>();
   const [layers, setLayers] = useState<Layer[]>([]);
   const [addLayer, setAddLayer] = useState<Layer | null>();
   const [resetMap, setResetMap] = useState<boolean>(false);
+  const [runFunction, setRunFunction] = useState<Function | null>(null);
   const [nearUsers, setNearUsers] = useState<UserLocateAndTendency[]>([]);
   const init = useRef(true);
   
@@ -205,6 +243,34 @@ const MapPage = () => {
       setAddLayer(null);
     }
   }, [addLayer]);
+
+  useEffect(() => {
+    if(map !== null && runFunction !== null) {
+      (async () => {
+        await runFunction();
+        setRunFunction(null);
+      })()
+    }
+  }, [map, runFunction])
+
+  useEffect(() => {
+    const searchTxt = searchParams.get("searchTxt");
+    if(searchTxt) {
+      setRunFunction(() => async () => {
+        if(map) {
+          const result = (await locateSearch(searchTxt)).response.result;
+          if(result.items.length > 0) {
+            const point = result.items[0].point;
+            const nowCenter = map.getView().getCenter();
+            if(nowCenter) {
+              console.log(layers[1].getFeatures([nowCenter[0], nowCenter[1]]));
+              map.getView().setCenter([point.x, point.y]);
+            }
+          }
+        }
+      });
+    }
+  }, [searchParams.get("searchTxt")])
 
   return (
     <div className="main">
