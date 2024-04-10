@@ -24,10 +24,14 @@ const Login = (): JSX.Element => {
     if(user.id === '' && sessionStorage.getItem('session')) {
       const session = sessionStorage.getItem('session');
       fetch(`${process.env.REACT_APP_BACKEND_URL}/auth/${session}`, {
-        method: 'GET'
+        method: 'GET',
+        credentials: 'include'
       }).then((res: Response) => res.json()).then((data: LoginResponseData) => {
         sessionStorage.setItem("session", data.session);
         dispatch(userSet(data.user));
+        return () => {
+          window.location.reload()
+        }
       }).catch(() => {
         sessionStorage.removeItem("session");
       })
@@ -41,6 +45,7 @@ const Login = (): JSX.Element => {
       const formData: JsonData = formJsonData(e.currentTarget);
       fetch(`${process.env.REACT_APP_BACKEND_URL}/auth`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           "Content-Type": "application/json"
         },

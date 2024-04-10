@@ -58,7 +58,8 @@ router.post('/', async (req: PostRequest<SessionIdParam, SessionBody>, res: Expr
           userId: req.body.id
         }
       })).id
-
+      
+      req.session.user = user;
       res.status(200).json({ session: sessionId, user: user });
     } else {
       new Error("세션 생성 인자 부족");
@@ -100,7 +101,7 @@ router.get('/:id', async (req: GetRequest<SessionIdParam>, res: ExpressResponse)
       });
 
       if(user.tendency === null) user.tendency = defaultTendency;
-
+      req.session.user = user;
       res.status(200).json({ session: session.id, user: user });
     } else {
       new Error("세션 검색 인자 부족");
