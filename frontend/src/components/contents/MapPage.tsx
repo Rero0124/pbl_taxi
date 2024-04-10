@@ -114,12 +114,14 @@ const MapPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [map, setMap] = useState<Map | null>();
   const [layers, setLayers] = useState<Layer[]>([]);
+  const [marker, setMarker] = useState<Feature<Point>>();
+  const [markerStyle, setMarkerStyle] = useState<Style>();
   const [addLayer, setAddLayer] = useState<Layer | null>();
   const [resetMap, setResetMap] = useState<boolean>(false);
   const [runFunction, setRunFunction] = useState<Function | null>(null);
   const [nearUsers, setNearUsers] = useState<UserLocateAndTendency[]>([]);
   const init = useRef(true);
-  
+
   const updateGeoLocation = async (callback?: Function) => {
     navigator.geolocation.getCurrentPosition((geoloc) => {
       const locpos: GeoLocationPosition = geoloc.coords
@@ -141,30 +143,18 @@ const MapPage = () => {
   }
 
   useEffect(() => {
-    if(resetMap) {
+    if(resetMap && marker && markerStyle) {
       (async () => {
         const centerAddress = await addressSearch([location.location.longitude, location.location.latitude])
         const centerAddressText = centerAddress.response.result[centerAddress.response.result.length === 2 ? 1 : 0].text
         const markerSource = new VectorSource();
-      
-        const markerFeature = new Feature({
-          geometry: new Point([location.location.longitude, location.location.latitude])
-        })
-      
-        const markerStyle = new Style({
-          image: new Icon({
-            opacity: 1,
-            scale: 0.1,
-            src: markerImage
-          }),
-          text: new Text({
-            text: centerAddressText,
-            scale: 1,
-          }),
-          zIndex: 100
-        }) 
-      
-        markerSource.addFeature(markerFeature);
+        
+        markerStyle?.setText(new Text({
+          text: centerAddressText, 
+          scale: 1,
+        }));
+        
+        markerSource.addFeature(marker);
     
         const markerLayer = new VectorLayer({
           source: markerSource,
@@ -186,10 +176,10 @@ const MapPage = () => {
 
         newMap.on('click', async function (e) {
           const address = await addressSearch(e.coordinate);
-          const addressText = address.response.result[address.response.result.length === 2 ? 1 : 0].text
-          markerFeature.getGeometry()?.setCoordinates(e.coordinate);
-          markerStyle.setText(new Text({
-            text: addressText,
+          const addressText = address.response.result[address.response.result.length === 2 ? 1 : 0].text;
+          marker.getGeometry()?.setCoordinates(e.coordinate);
+          markerStyle?.setText(new Text({
+            text: addressText, 
             scale: 1,
           }));
           const params = {
@@ -215,6 +205,7 @@ const MapPage = () => {
         setMap(newMap);
         setLayers([baseLayer, markerLayer]);
         setResetMap(false);
+        
       })()
     }
   }, [resetMap])
@@ -230,6 +221,23 @@ const MapPage = () => {
       const timer = setInterval(updateGeoLocation, 5000);
       dispatch(schdulerSet(timer));
     } else {
+      if(init.current) {
+        init.current = false;
+        setMarker(new Feature({
+          geometry: new Point([location.location.longitude, location.location.latitude])
+        }));
+
+        setMarkerStyle(new Style({
+          image: new Icon({
+            opacity: 1,
+            scale: 0.1,
+            src: markerImage
+          }),
+          zIndex: 100
+        }));
+
+        setResetMap(true);
+      }
       dispatch(schdulerUnSet());
     }
   }, [])
@@ -263,14 +271,18 @@ const MapPage = () => {
             const point = result.items[0].point;
             const nowCenter = map.getView().getCenter();
             if(nowCenter) {
-              console.log(layers[1].getFeatures([nowCenter[0], nowCenter[1]]));
               map.getView().setCenter([point.x, point.y]);
+              marker?.getGeometry()?.setCoordinates([point.x, point.y]);
+              markerStyle?.setText(new Text({
+                text: result.items[0].address?.road,  
+                scale: 1,
+              }))
             }
           }
-        }
+        } 
       });
     }
-  }, [searchParams.get("searchTxt")])
+  }, [searchParams])
 
   return (
     <div className="main">
