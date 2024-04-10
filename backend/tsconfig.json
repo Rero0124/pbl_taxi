@@ -9,7 +9,7 @@
     "declarationDir": "./types",
     "forceConsistentCasingInFileNames": true,
     "typeRoots": ["./node_modules/@types", "src/types"],
-    "types": ["global"]
+    "types": ["global", "session"]
   },
   "include": [
     "src"

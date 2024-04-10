@@ -70,6 +70,13 @@ model UserTendency {
   user        User      @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 }
 
+model Session {
+  id        String   @id
+  sid       String   @unique
+  data      String
+  expiresAt   DateTime
+}
+
 model UserSession {
   id          String    @id @default(uuid())
   userId      String    @unique
