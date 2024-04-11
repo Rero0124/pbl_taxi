@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import '../../styles/Contents.css'
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent } from 'react';
 import { formJsonData, formValidationCheck } from '../../util/form';
 import { post } from '../../util/ajax';
 

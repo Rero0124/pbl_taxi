@@ -10,16 +10,36 @@ import { RootState, useStore } from './store/store';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import Section from './components/layout/Section';
 import { User, userSet } from './store/userReducer';
+import { GeoLocationPosition, locationDeny, locationSet, schdulerSet, schdulerUnSet } from './store/locationReducer';
+import { put } from './util/ajax';
 
 function App() {
   const dispatch = useDispatch();
 
   const user = useSelector((state: RootState) => state.user);
+  const location = useSelector((state: RootState) => state.location);
   const [serverEvent, setServerEvent] = useState<EventSource | null>(null);
   const [appType, setAppType] = useState<string>("customer");
 
+  const updateGeoLocation = async (callback?: Function) => {
+    navigator.geolocation.getCurrentPosition((geoloc) => {
+      const locpos: GeoLocationPosition = geoloc.coords
+      dispatch(locationSet(locpos))
+      if(callback) callback();
+      put(`${process.env.REACT_APP_BACKEND_URL}/user/locate`, {
+        body: JSON.stringify({ x: locpos.longitude, y: locpos.latitude })
+      }, (data: BackendResponseData) => {
+        
+      });
+    }, (err) => {
+      if(err.code === err.PERMISSION_DENIED) {
+        dispatch(schdulerUnSet());
+        dispatch(locationDeny());
+      }
+    })
+  }
+
   useEffect(() => {
-    console.log(user.id !== "")
     if(user.id !== "") {
       if(serverEvent !== null) { serverEvent.close(); }
       setServerEvent(new EventSource(`${process.env.REACT_APP_BACKEND_URL}/driver`, { withCredentials: true }));
@@ -46,6 +66,14 @@ function App() {
     }
 
     if(isMobile) setAppType("driver");
+
+    if(location.isEnable) {
+      updateGeoLocation();
+      const timer = setInterval(updateGeoLocation, 5000);
+      dispatch(schdulerSet(timer));
+    } else {
+      dispatch(schdulerUnSet());
+    }
   }, [])
 
   return (

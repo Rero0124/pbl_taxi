@@ -12,11 +12,9 @@ import markerImage from "../../images/marker.png";
 import { Coordinate } from "ol/coordinate";
 import fetchJsonp from "fetch-jsonp";
 import Text from "ol/style/Text";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import { GeoLocationPosition, locationDeny, locationSet, schdulerSet, schdulerUnSet } from "../../store/locationReducer";
 import { useSearchParams } from "react-router-dom";
-import { put } from "../../util/ajax";
 
 interface UserLocateAndTendency {
   userId: string,
@@ -52,7 +50,11 @@ interface AddressResponse {
 
 interface LocateResponse {
   response: {
-    result: {
+    record: {
+      current: number;
+      total: number;
+    };
+    result?: {
       crs: string;
       type: string;
       items: {
@@ -108,85 +110,97 @@ const locateSearch = async (searchTxt: string): Promise<LocateResponse> => {
 }
 
 const MapPage = () => {
-  const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
   const location = useSelector((state: RootState) => state.location);
   
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [map, setMap] = useState<Map | null>();
-  const [layers, setLayers] = useState<Layer[]>([]);
-  const [marker, setMarker] = useState<Feature<Point>>();
-  const [markerStyle, setMarkerStyle] = useState<Style>();
-  const [addLayer, setAddLayer] = useState<Layer | null>();
-  const [resetMap, setResetMap] = useState<boolean>(false);
-  const [runFunction, setRunFunction] = useState<Function | null>(null);
   const [nearUsers, setNearUsers] = useState<UserLocateAndTendency[]>([]);
-  const init = useRef(true);
-
-  const updateGeoLocation = async (callback?: Function) => {
-    navigator.geolocation.getCurrentPosition((geoloc) => {
-      const locpos: GeoLocationPosition = geoloc.coords
-      dispatch(locationSet(locpos))
-      if(callback) callback();
-      put(`${process.env.REACT_APP_BACKEND_URL}/user/locate`, {
-        body: JSON.stringify({ x: locpos.longitude, y: locpos.latitude })
-      }, (data: BackendResponseData) => {
-        
-      });
-    }, (err) => {
-      if(err.code === err.PERMISSION_DENIED) {
-        dispatch(schdulerUnSet());
-        dispatch(locationDeny());
-      }
-    })
-  }
 
   useEffect(() => {
-    if(resetMap && marker && markerStyle) {
-      (async () => {
-        const centerAddress = await addressSearch([location.location.longitude, location.location.latitude])
-        const centerAddressText = centerAddress.response.result[centerAddress.response.result.length === 2 ? 1 : 0].text
-        const markerSource = new VectorSource();
+    (async() => {
+      let centerCoordinate = [126.97831737391309, 37.566619172927574];
+      let centerText = "시청";
+      let searchFail = false;
+
+      const searchTxt = searchParams.get("searchTxt");
+      console.log(map)
+      if(searchTxt) {
+        const res = (await locateSearch(searchTxt)).response;
+        if(res.record.current > 0 && res.result?.items[0].address) {
+          const point = res.result.items[0].point;
+          centerCoordinate = [Number(point.x), Number(point.y)];
+          centerText = res.result.items[0].address.road;
+        } else {
+          searchFail = true;
+        }
+      }
+      console.log(centerCoordinate, centerText);
+      console.log(searchTxt === null || searchFail)
+      
+      if(searchTxt === null || searchFail){
+        centerCoordinate = [location.location.longitude, location.location.latitude];
+        const address = await addressSearch(centerCoordinate)
+        centerText = address.response.result[address.response.result.length === 2 ? 1 : 0].text;
+      }
+      
+      const markerSource = new VectorSource();
+
+      const markerFeature = new Feature({
+        geometry: new Point(centerCoordinate)
+      });
+
+      markerSource.addFeature(markerFeature);
+      
+      const markerLayerStyle = new Style({
+        image: new Icon({
+          opacity: 1,
+          scale: 0.1,
+          src: markerImage
+        }),
+        text: new Text({
+          text: centerText, 
+          scale: 1,
+        }),
+        zIndex: 100
+      })
+
+      const markerLayer = new VectorLayer({
+        source: markerSource,
+        style: markerLayerStyle
+      })
+
+      const newMap = new Map({
+        target: 'map',
+        layers: [baseLayer, markerLayer],
+        view: new View({
+          center: centerCoordinate,
+          zoom: 16,
+          minZoom: 7,
+          maxZoom: 18,
+          projection : 'EPSG:4326'
+        }),
+        controls: []
+      });
+
+      newMap.on('click', async function (e) {
+        const address = await addressSearch(e.coordinate);
+        const addressText = address.response.result[address.response.result.length === 2 ? 1 : 0].text;
         
-        markerStyle?.setText(new Text({
-          text: centerAddressText, 
+        markerFeature.getGeometry()?.setCoordinates(e.coordinate);
+
+        markerLayerStyle.setText(new Text({
+          text: addressText, 
           scale: 1,
         }));
-        
-        markerSource.addFeature(marker);
-    
-        const markerLayer = new VectorLayer({
-          source: markerSource,
-          style: markerStyle
-        })
 
-        const newMap = new Map({
-          target: 'map',
-          layers: [markerLayer, baseLayer],
-          view: new View({
-            center: [location.location.longitude, location.location.latitude],
-            zoom: 16,
-            minZoom: 7,
-            maxZoom: 18,
-            projection : 'EPSG:4326'
-          }),
-          controls: []
-        });
+        const params = {
+          x: e.coordinate[0].toString(),
+          y: e.coordinate[1].toString()
+        };
 
-        newMap.on('click', async function (e) {
-          const address = await addressSearch(e.coordinate);
-          const addressText = address.response.result[address.response.result.length === 2 ? 1 : 0].text;
-          marker.getGeometry()?.setCoordinates(e.coordinate);
-          markerStyle?.setText(new Text({
-            text: addressText, 
-            scale: 1,
-          }));
-          const params = {
-            x: e.coordinate[0].toString(),
-            y: e.coordinate[1].toString()
-          };
-          const query = new URLSearchParams(params).toString()
-          const users: UserLocateAndTendency[] = await fetch(`${process.env.REACT_APP_BACKEND_URL}/search/near/user/${user.id}/locate?${query}`).then(res => res.json());
+        const query = new URLSearchParams(params).toString()
+        const users: UserLocateAndTendency[] = await fetch(`${process.env.REACT_APP_BACKEND_URL}/search/locate/near?${query}`).then(res => res.json());
           fetch(`${process.env.REACT_APP_BACKEND_URL}/driver/message`, {
             method: "POST",
             headers: {
@@ -199,89 +213,11 @@ const MapPage = () => {
             })
           })
           setNearUsers(users);
-        });
-
-        setMap(newMap);
-        setLayers([baseLayer, markerLayer]);
-        setResetMap(false);
-        
-      })()
-    }
-  }, [resetMap])
-
-  useEffect(() => {
-    if(location.isEnable) {
-      if(init.current) {
-        updateGeoLocation(() => {
-          init.current = false;
-          setResetMap(true);
-        });
-      }
-      const timer = setInterval(updateGeoLocation, 5000);
-      dispatch(schdulerSet(timer));
-    } else {
-      if(init.current) {
-        init.current = false;
-        setMarker(new Feature({
-          geometry: new Point([location.location.longitude, location.location.latitude])
-        }));
-
-        setMarkerStyle(new Style({
-          image: new Icon({
-            opacity: 1,
-            scale: 0.1,
-            src: markerImage
-          }),
-          zIndex: 100
-        }));
-
-        setResetMap(true);
-      }
-      dispatch(schdulerUnSet());
-    }
-  }, [])
-  
-
-  useEffect(() => {
-    if(addLayer) {
-      if(map) map.addLayer(addLayer);
-      const nowLayers = layers;
-      setLayers([...nowLayers, addLayer])
-      setAddLayer(null);
-    }
-  }, [addLayer]);
-
-  useEffect(() => {
-    if(map !== null && runFunction !== null) {
-      (async () => {
-        await runFunction();
-        setRunFunction(null);
-      })()
-    }
-  }, [map, runFunction])
-
-  useEffect(() => {
-    const searchTxt = searchParams.get("searchTxt");
-    if(searchTxt) {
-      setRunFunction(() => async () => {
-        if(map) {
-          const result = (await locateSearch(searchTxt)).response.result;
-          if(result.items.length > 0) {
-            const point = result.items[0].point;
-            const nowCenter = map.getView().getCenter();
-            if(nowCenter) {
-              map.getView().setCenter([point.x, point.y]);
-              marker?.getGeometry()?.setCoordinates([point.x, point.y]);
-              markerStyle?.setText(new Text({
-                text: result.items[0].address?.road,  
-                scale: 1,
-              }))
-            }
-          }
-        } 
       });
-    }
-  }, [searchParams])
+
+      setMap(newMap);
+    })()
+  }, [])
 
   return (
     <div className="main">
