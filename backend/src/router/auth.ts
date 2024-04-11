@@ -17,9 +17,41 @@ const defaultTendency: UserTendency = {
 }
 
 /**
+ * 세션 검색
+ */
+router.get('/', async (req: GetRequest<SessionIdParam>, res: ExpressResponse) => {
+  try {
+    if(req.ip !== undefined) {
+      if(req.session.user !== undefined) {
+        const ip = req.ip === '::1' ? '127.0.0.1' : req.ip;
+
+        const user: UserInfo = await prisma.user.findUniqueOrThrow({
+          include: {
+            tendency: true
+          },
+          where: {
+            id: req.session.user.id
+          }
+        });
+
+        if(user.tendency === null) user.tendency = defaultTendency;
+        req.session.user = user;
+        res.status(200).json({ message: "success", data: user });
+      } else {
+        res.status(200).json({ message: "먼저 로그인을 해주세요." });
+      }
+    } else {
+      new Error("세션 검색 인자 부족");
+    }
+  } catch {
+    res.status(500).send({ message: "Internal Server Error" })
+  }
+})
+
+/**
  * 세션 생성
  */
-router.post('/', async (req: PostRequest<SessionIdParam, SessionBody>, res: ExpressResponse) => {
+router.post('/', async (req: PostRequest<SessionBody>, res: ExpressResponse) => {
   try {
     if(req.body.pw !== undefined && req.ip !== undefined) {
       const ip = req.ip === '::1' ? '127.0.0.1' : req.ip;
@@ -34,12 +66,6 @@ router.post('/', async (req: PostRequest<SessionIdParam, SessionBody>, res: Expr
       });
 
       if(user.tendency === null) user.tendency = defaultTendency;
-
-      await prisma.userSession.deleteMany({
-        where: {
-          userId: user.id
-        }
-      })
         
       await prisma.userLoginHistory.create({
         data: {
@@ -49,18 +75,8 @@ router.post('/', async (req: PostRequest<SessionIdParam, SessionBody>, res: Expr
         }
       })
 
-      const sessionId = (await prisma.userSession.create({
-        select: {
-          id: true,
-        },
-        data: {
-          ip: ip,
-          userId: req.body.id
-        }
-      })).id
-      
       req.session.user = user;
-      res.status(200).json({ session: sessionId, user: user });
+      res.status(200).json({ message: "success", data: user });
     } else {
       new Error("세션 생성 인자 부족");
     }
@@ -74,64 +90,27 @@ router.post('/', async (req: PostRequest<SessionIdParam, SessionBody>, res: Expr
         }
       })
     }
-    res.status(500).send("Internal Server Error")
-  }
-})
-
-/**
- * 세션 검색
- */
-router.get('/:id', async (req: GetRequest<SessionIdParam>, res: ExpressResponse) => {
-  try {
-    if(req.ip !== undefined) {
-      const ip = req.ip === '::1' ? '127.0.0.1' : req.ip;
-      const session: UserSession = await prisma.userSession.findFirstOrThrow({
-        where: {
-          id: req.params.id,
-          ip: ip
-        }
-      });
-      const user: UserInfo = await prisma.user.findUniqueOrThrow({
-        include: {
-          tendency: true
-        },
-        where: {
-          id: session.userId
-        }
-      });
-
-      if(user.tendency === null) user.tendency = defaultTendency;
-      req.session.user = user;
-      res.status(200).json({ session: session.id, user: user });
-    } else {
-      new Error("세션 검색 인자 부족");
-    }
-  } catch {
-    res.status(500).send("Internal Server Error")
+    res.status(500).send({ message: "Internal Server Error" })
   }
 })
 
 /**
  * 세션 제거
  */
-router.post('/delete', async (req: PostRequest<SessionIdParam, SessionBody>, res: ExpressResponse) => {
+router.post('/delete', async (req: PostRequest<SessionBody>, res: ExpressResponse) => {
   try {
-    if(req.ip !== undefined) {
-      const ip = req.ip === '::1' ? '127.0.0.1' : req.ip;
-
-      await prisma.userSession.delete({
-        where: {
-          id: req.body.id,
-          ip: ip
-        }
-      })
-
-      res.status(200).json({ message: "session deleted" });
+    if(req.session.user !== undefined) {
+      req.session.destroy((err) => {
+        // Debug
+        // console.log(err)
+        new Error("세션 삭제 에러");
+      });
+      res.status(200).json({ message: "success", action: "main" });
     } else {
-      new Error("세션 제거 인자 부족");
+      res.status(200).json({ message: "로그인 상태가 아닙니다.", action: "main" });
     }
   } catch {
-    res.status(500).send("Internal Server Error")
+    res.status(500).send({ message: "Internal Server Error" })
   }
 })
 

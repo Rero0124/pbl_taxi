@@ -7,24 +7,30 @@ declare namespace NodeJS {
 }
 
 type ExpressRequest = import("express").Request;
-type ExpressResponse = import("express").Response;
+type ExpressResponse = import("express").Response<ResponseData>;
+
+interface ResponseData {
+  message: string;
+  action?: "back" | "reload" | "main";
+  data?: any; 
+} 
 
 interface GetRequest<Params = any, Query = any> extends ExpressRequest {
   readonly params: Params
   readonly query: Query
 }
 
-interface PostRequest<Params = any, Body = any> extends ExpressRequest {
+interface PostRequest<Body = any, Params = any> extends ExpressRequest {
   readonly params: Params
   readonly body: Body
 }
 
-interface PatchRequest<Params = any, Body = any> extends ExpressRequest {
+interface PatchRequest<Body = any, Params = any> extends ExpressRequest {
   readonly params: Params
   readonly body: Body
 }
 
-interface PutRequest<Params = any, Body = any> extends ExpressRequest {
+interface PutRequest<Body = any, Params = any> extends ExpressRequest {
   readonly params: Params
   readonly body: Body
 }

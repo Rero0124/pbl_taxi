@@ -5,15 +5,19 @@ const router: Router = express.Router();
 
 const drivers = new Map<string, ExpressResponse>();
 
-router.get('/:id', (req: GetRequest<UserIdParam>, res: ExpressResponse) => {
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-
-  drivers.set(req.params.id, res);
+router.get('/', (req: GetRequest, res: ExpressResponse) => {
+  if(req.session.user !== undefined) {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    
+    drivers.set(req.params.id, res);
+  } else {
+    res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
+  }
 })
 
-router.post('/message', (req: PostRequest<{}, SendMessageBody>, res: ExpressResponse) => {
+router.post('/message', (req: PostRequest<SendMessageBody>, res: ExpressResponse) => {
   req.body.userIds.forEach((userId) => {
     const userRes = drivers.get(userId);
     if(userRes) {

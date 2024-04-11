@@ -19,7 +19,7 @@ const defaultTendency: UserTendency = {
 /**
  * 사용자 등록
  */
-router.post('/', async (req: PostRequest<{}, UserCreateBody>, res: ExpressResponse) => {
+router.post('/', async (req: PostRequest<UserCreateBody>, res: ExpressResponse) => {
   try {
     if(req.body.name !== undefined && req.body.phone !== undefined && req.body.email !== undefined) {
       const user = await prisma.user.create({
@@ -32,12 +32,12 @@ router.post('/', async (req: PostRequest<{}, UserCreateBody>, res: ExpressRespon
         }
       })
 
-      res.status(200).json(user);
+      res.status(200).json({ message: "success" });
     } else {
       new Error('사용자 등록 인자 부족');
     }
   } catch {
-    res.status(500).send("Internal Server Error")
+    res.status(500).send({ message: "Internal Server Error" })
   }
 })
 
@@ -51,106 +51,113 @@ router.get('/:id', async (req: GetRequest<UserParams>, res: ExpressResponse) => 
         tendency: true
       },
       where: {
-        id: req.params.id
+        id: req.query.id
       }
     })
     
     defaultTendency.userId = userInfo.id;
     if(userInfo.tendency === null) userInfo.tendency = defaultTendency;
 
-    res.status(200).json(userInfo);
+    res.status(200).json({ message: "success", data: userInfo });
   } catch {
-    res.status(500).send("Internal Server Error")
+    res.status(500).send({ message: "Internal Server Error" })
   }
 })
 
 /**
  * 사용자 초기 해제
  */
-router.patch('/:id/init', async (req: PatchRequest<UserParams>, res: ExpressResponse) => {
+router.patch('/init', async (req: PatchRequest, res: ExpressResponse) => {
   try {
-    const userInfo: UserInfo = await prisma.user.update({
-      data: {
-        init: false
-      },
-      include: {
-        tendency: true
-      },
-      where: {
-        id: req.params.id
-      }
-    })
-    
-    defaultTendency.userId = userInfo.id;
-    if(userInfo.tendency === null) userInfo.tendency = defaultTendency;
-
-    res.status(200).json(userInfo);
+    if(req.session.user !== undefined) {
+      const userInfo: UserInfo = await prisma.user.update({
+        data: {
+          init: false
+        },
+        include: {
+          tendency: true
+        },
+        where: {
+          id: req.session.user.id
+        }
+      })
+      
+      defaultTendency.userId = req.session.user.id;
+      if(userInfo.tendency === null) userInfo.tendency = defaultTendency;
+  
+      res.status(200).json({ message: "success" });
+    } else {
+      res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
+    }
   } catch {
-    res.status(500).send("Internal Server Error")
+    res.status(500).send({ message: "Internal Server Error" })
   }
 })
 
-router.put('/:id/locate', async (req: PutRequest<UserParams, UserLocateBody>, res: ExpressResponse) => {
+router.put('/locate', async (req: PutRequest<UserLocateBody>, res: ExpressResponse) => {
   try {
-    const locate = await prisma.userLocate.findUnique({
-      where: {
-        userId: req.params.id
-      }
-    });
-
-    const query = Prisma.raw( locate === null ? 
-                      `INSERT INTO "UserLocate" ("userId", "geom") VALUES ('${req.params.id}', ST_GeomFromText('Point(${req.body.x} ${req.body.y})', 4326))` : 
-                      `UPDATE "UserLocate" SET "geom" = ST_GeomFromText('Point(${req.body.x} ${req.body.y})', 4326) WHERE "userId" = '${req.params.id}'`)
-
-    const result = await prisma.$executeRaw(query)
-
-    res.status(200).json(result);
+    if(req.session.user !== undefined) {
+      const locate = await prisma.userLocate.findUnique({
+        where: {
+          userId: req.session.user.id
+        }
+      });
+  
+      const query = Prisma.raw( locate === null ? 
+                        `INSERT INTO "UserLocate" ("userId", "geom") VALUES ('${req.session.user.id}', ST_GeomFromText('Point(${req.body.x} ${req.body.y})', 4326))` : 
+                        `UPDATE "UserLocate" SET "geom" = ST_GeomFromText('Point(${req.body.x} ${req.body.y})', 4326) WHERE "userId" = '${req.session.user.id}'`)
+  
+      await prisma.$executeRaw(query)
+  
+      res.status(200).json({ message: "success" });
+    } else {
+      res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
+    }
   } catch {
-    res.status(500).send("Internal Server Error")
+    res.status(500).send({ message: "Internal Server Error" })
   }
 })
 
 /**
  * 사용자 성향 수정
  */
-router.put('/:id/tendency', async (req: PutRequest<UserParams, UserTendencyBody>, res: ExpressResponse) => {
+router.put('/tendency', async (req: PutRequest<UserTendencyBody>, res: ExpressResponse) => {
   try {
-    const tendency = await prisma.userTendency.findUnique({
-      where: {
-        userId: req.params.id
-      }
-    });
-    const result = tendency === null ? (
-      await prisma.userTendency.create({
-        data: {
-          userId: req.params.id,
-          inward: req.body.inward,
-          quickly: req.body.quickly,
-          song: req.body.song,
-          songName: req.body.songName
-        }
-      })
-    ) : ( 
-      await prisma.userTendency.update({
-        data: {
-          inward: req.body.inward,
-          quickly: req.body.quickly,
-          song: req.body.song,
-          songName: req.body.songName
-        },
+    if(req.session.user !== undefined) {
+      const tendency = await prisma.userTendency.findUnique({
         where: {
-          userId: req.params.id
+          userId: req.session.user.id
         }
-      })
-    )
-
-    if(result !== null) {
-      res.status(200).json(result);
+      });
+      const result = tendency === null ? (
+        await prisma.userTendency.create({
+          data: {
+            userId: req.session.user.id,
+            inward: req.body.inward,
+            quickly: req.body.quickly,
+            song: req.body.song,
+            songName: req.body.songName
+          }
+        })
+      ) : ( 
+        await prisma.userTendency.update({
+          data: {
+            inward: req.body.inward,
+            quickly: req.body.quickly,
+            song: req.body.song,
+            songName: req.body.songName
+          },
+          where: {
+            userId: req.session.user.id
+          }
+        })
+      )
+      res.status(200).json({ message: "success", data: result });
     } else {
-      new Error('성향 등록 실패');
+      res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
     }
   } catch {
-    res.status(500).send("Internal Server Error")
+    res.status(500).send({ message: "Internal Server Error" })
   }
 })
 
@@ -158,30 +165,34 @@ router.put('/:id/tendency', async (req: PutRequest<UserParams, UserTendencyBody>
  * 사용자 비밀번호 변경
  */
 
-router.patch('/:id/password', async (req: PatchRequest<UserParams, UserChangePasswordBody>, res: ExpressResponse) => {
+router.patch('/password', async (req: PatchRequest<UserChangePasswordBody>, res: ExpressResponse) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: req.params.id,
-        pw: req.body.pw
-      }
-    });
-
-    if(user !== null) {
-      await prisma.user.update({
-        data: {
-          pw: req.body.npw
-        },
+    if(req.session.user !== undefined) {
+      const user = await prisma.user.findUnique({
         where: {
-          id: req.params.id,
+          id: req.session.user.id,
+          pw: req.body.pw
         }
       });
-      res.status(200).json({result: true});
+
+      if(user !== null) {
+        await prisma.user.update({
+          data: {
+            pw: req.body.npw
+          },
+          where: {
+            id: req.session.user.id,
+          }
+        });
+        res.status(200).json({ message: "success" });
+      } else {
+        res.status(202).json({ message: "기존 비밀번호를 다시 입력해주세요." });
+      }
     } else {
-      res.status(202).json({result: false});
+      res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
     }
   } catch {
-    res.status(500).send("Internal Server Error")
+    res.status(500).send({ message: "Internal Server Error" })
   }
 })
 
@@ -189,16 +200,20 @@ router.patch('/:id/password', async (req: PatchRequest<UserParams, UserChangePas
  * 사용자 팔로우 리스트 검색
  */
 
-router.get('/:id/follow', async (req: GetRequest<UserParams>, res: ExpressResponse) => {
+router.get('/follow', async (req: GetRequest, res: ExpressResponse) => {
   try {
-    const followList = await prisma.userFollowList.findMany({
-      where: {
-        userId: req.params.id
-      }
-    });
-    res.status(200).json(followList);
+    if(req.session.user !== undefined) {
+      const followList = await prisma.userFollowList.findMany({
+        where: {
+          userId: req.session.user.id
+        }
+      });
+      res.status(200).json({ message: "success", data: followList });
+    } else {
+      res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
+    }
   } catch {
-    res.status(500).send("Internal Server Error")
+    res.status(500).send({ message: "Internal Server Error" })
   }
 })
 
@@ -206,16 +221,20 @@ router.get('/:id/follow', async (req: GetRequest<UserParams>, res: ExpressRespon
  * 사용자 밴 리스트 검색
  */
 
-router.get('/:id/ban', async (req: GetRequest<UserParams>, res: ExpressResponse) => {
+router.get('/ban', async (req: GetRequest, res: ExpressResponse) => {
   try {
-    const banList = await prisma.userBanList.findMany({
-      where: {
-        userId: req.params.id
-      }
-    });
-    res.status(200).json(banList);
+    if(req.session.user !== undefined) {
+      const banList = await prisma.userBanList.findMany({
+        where: {
+          userId: req.session.user.id
+        }
+      });
+      res.status(200).json({ message: "success", data: banList });
+    } else {
+      res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
+    }  
   } catch {
-    res.status(500).send("Internal Server Error")
+    res.status(500).send({ message: "Internal Server Error" })
   }
 })
 
@@ -223,17 +242,22 @@ router.get('/:id/ban', async (req: GetRequest<UserParams>, res: ExpressResponse)
  * 사용자 팔로우
  */
 
-router.post('/:id/follow', async (req: PostRequest<UserParams, TargetUserBody>, res: ExpressResponse) => {
+router.post('/follow', async (req: PostRequest<TargetUserBody>, res: ExpressResponse) => {
   try {
-    const follow = await prisma.userFollowList.create({
-      data: {
-        userId: req.params.id,
-        followedUserId: req.body.userId
-      }
-    });
-    res.status(200).json(follow);
+    if(req.session.user !== undefined) {
+      const follow = await prisma.userFollowList.create({
+        data: {
+          userId: req.session.user.id,
+          followedUserId: req.body.userId
+        }
+      });
+      
+      res.status(200).json({ message: "success", data: follow });
+    } else {
+      res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
+    }
   } catch {
-    res.status(500).send("Internal Server Error")
+    res.status(500).send({ message: "Internal Server Error" })
   }
 })
 
@@ -241,17 +265,21 @@ router.post('/:id/follow', async (req: PostRequest<UserParams, TargetUserBody>, 
  * 사용자 밴
  */
 
-router.post('/:id/ban', async (req: PostRequest<UserParams, TargetUserBody>, res: ExpressResponse) => {
+router.post('/ban', async (req: PostRequest<TargetUserBody>, res: ExpressResponse) => {
   try {
-    const ban = await prisma.userBanList.create({
-      data: {
-        userId: req.params.id,
-        bannedUserId: req.body.userId
-      }
-    });
-    res.status(200).json(ban);
+    if(req.session.user !== undefined) {
+      const ban = await prisma.userBanList.create({
+        data: {
+          userId: req.session.user.id,
+          bannedUserId: req.body.userId
+        }
+      });
+      res.status(200).json({ message: "success", data: ban });
+    } else {
+      res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
+    }
   } catch {
-    res.status(500).send("Internal Server Error")
+    res.status(500).send({ message: "Internal Server Error" })
   }
 })
 
