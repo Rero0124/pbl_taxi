@@ -1,13 +1,12 @@
 import { Feature, Map, View } from "ol";
 import { Point } from "ol/geom";
-import Layer from "ol/layer/Layer";
 import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
 import { XYZ } from "ol/source";
 import VectorSource from "ol/source/Vector";
 import Icon from "ol/style/Icon";
 import Style from "ol/style/Style";
-import { CSSProperties, useEffect, useRef, useState } from "react";
+import { CSSProperties, useEffect, useState } from "react";
 import markerImage from "../../images/marker.png";
 import { Coordinate } from "ol/coordinate";
 import fetchJsonp from "fetch-jsonp";
@@ -115,7 +114,6 @@ const MapPage = () => {
   
   const [searchParams] = useSearchParams();
   const [map, setMap] = useState<Map | null>();
-  const [nearUsers, setNearUsers] = useState<UserLocateAndTendency[]>([]);
 
   useEffect(() => {
     (async() => {
@@ -212,7 +210,6 @@ const MapPage = () => {
               userIds: [user.id]
             })
           })
-          setNearUsers(users);
       });
 
       setMap(newMap);

@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import logo from './logo.svg';
+import { useEffect, useState } from 'react';
 import './App.css';
 import { BrowserView, MobileView, isIE, isMobile } from 'react-device-detect';
 import NotSupport from './components/pages/NotSupport';
 import Header from './components/layout/Header';
 import Navigation from './components/layout/Navigation';
 import Footer from './components/layout/Footer';
-import { RootState, useStore } from './store/store';
-import { Provider, useDispatch, useSelector } from 'react-redux';
+import { RootState } from './store/store';
+import { useDispatch, useSelector } from 'react-redux';
 import Section from './components/layout/Section';
 import { User, userSet } from './store/userReducer';
 import { GeoLocationPosition, locationDeny, locationSet, schdulerSet, schdulerUnSet } from './store/locationReducer';

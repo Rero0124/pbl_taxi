@@ -1,10 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom';
 import '../../styles/Contents.css'
-import { FormEvent, useEffect } from 'react';
+import { FormEvent } from 'react';
 import { formJsonData, formValidationCheck } from '../../util/form';
-import { User, userSet } from '../../store/userReducer';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../store/store';
+import { userSet } from '../../store/userReducer';
+import { useDispatch } from 'react-redux';
 import { post } from '../../util/ajax';
 
 interface LoginForm extends HTMLFormElement {
