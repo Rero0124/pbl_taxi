@@ -2,8 +2,7 @@ interface SessionIdParam {
   id: string
 }
 
-interface SessionBody {
+interface SessionLoginBody {
   id: string;
-  pw?: string;
-  sessionId?: string
+  pw: string;
 }

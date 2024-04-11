@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import { PrismaClient, User, UserSession, UserTendency } from "@prisma/client";
+import { PrismaClient, User, UserTendency } from "@prisma/client";
 
 interface UserInfo extends User {
   tendency: UserTendency | null
@@ -35,8 +35,19 @@ router.get('/', async (req: GetRequest<SessionIdParam>, res: ExpressResponse) =>
         });
 
         if(user.tendency === null) user.tendency = defaultTendency;
-        req.session.user = user;
-        res.status(200).json({ message: "success", data: user });
+
+        req.session.user = {
+          id: user.id,
+          name: user.name,
+          phone: user.phone,
+          email: user.email,
+          inward: user.tendency.inward,
+          quickly: user.tendency.quickly,
+          song: user.tendency.song,
+          songName: user.tendency.songName
+        };
+
+        res.status(200).json({ message: "success", data: req.session.user });
       } else {
         res.status(200).json({ message: "먼저 로그인을 해주세요." });
       }
@@ -51,11 +62,20 @@ router.get('/', async (req: GetRequest<SessionIdParam>, res: ExpressResponse) =>
 /**
  * 세션 생성
  */
-router.post('/', async (req: PostRequest<SessionBody>, res: ExpressResponse) => {
+router.post('/', async (req: PostRequest<SessionLoginBody>, res: ExpressResponse) => {
   try {
-    if(req.body.pw !== undefined && req.ip !== undefined) {
+    if(req.ip !== undefined) {
       const ip = req.ip === '::1' ? '127.0.0.1' : req.ip;
-      const user: UserInfo = await prisma.user.findUniqueOrThrow({
+
+      const loginHistory = await prisma.userLoginHistory.create({
+        data: {
+          userId: req.body.id,
+          ip: ip,
+          success: false
+        }
+      })
+
+      const user = await prisma.user.findUnique({
         include: {
           tendency: true
         },
@@ -65,31 +85,37 @@ router.post('/', async (req: PostRequest<SessionBody>, res: ExpressResponse) => 
         }
       });
 
-      if(user.tendency === null) user.tendency = defaultTendency;
-        
-      await prisma.userLoginHistory.create({
-        data: {
-          userId: req.body.id,
-          ip: ip,
-          success: true
-        }
-      })
+      if(user !== null) {
+        if(user.tendency === null) user.tendency = defaultTendency;
 
-      req.session.user = user;
-      res.status(200).json({ message: "success", data: user });
+        await prisma.userLoginHistory.update({
+          data: {
+            success: true
+          },
+          where: {
+            id: loginHistory.id
+          }
+        })
+        
+        req.session.user = {
+          id: user.id,
+          name: user.name,
+          phone: user.phone,
+          email: user.email,
+          inward: user.tendency.inward,
+          quickly: user.tendency.quickly,
+          song: user.tendency.song,
+          songName: user.tendency.songName
+        };
+
+        res.status(200).json({ message: "success", data: req.session.user });
+      } else {
+        res.status(202).json({ message: "아이디/비밀번호를 다시 입력해주세요." });
+      }
     } else {
       new Error("세션 생성 인자 부족");
     }
   } catch {
-    if(req.body.id !== undefined && req.ip !== undefined) {
-      await prisma.userLoginHistory.create({
-        data: {
-          userId: req.body.id,
-          ip: req.ip === '::1' ? '127.0.0.1' : req.ip,
-          success: false
-        }
-      })
-    }
     res.status(500).send({ message: "Internal Server Error" })
   }
 })
@@ -97,7 +123,7 @@ router.post('/', async (req: PostRequest<SessionBody>, res: ExpressResponse) => 
 /**
  * 세션 제거
  */
-router.post('/delete', async (req: PostRequest<SessionBody>, res: ExpressResponse) => {
+router.delete('/', async (req: PostRequest, res: ExpressResponse) => {
   try {
     if(req.session.user !== undefined) {
       req.session.destroy((err) => {

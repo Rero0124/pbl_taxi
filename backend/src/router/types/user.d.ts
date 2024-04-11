@@ -6,7 +6,7 @@ interface UserCreateBody {
   id: string;
   pw: string;
   name?: string;
-  phone?: number;
+  phone: number;
   email?: string;
 }
 

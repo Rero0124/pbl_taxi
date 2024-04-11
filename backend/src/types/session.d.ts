@@ -5,13 +5,13 @@ declare module 'express-session' {
     cookie: Cookie;
     user?: {
       id: string;
-      name: string;
+      name: string | null;
       phone: number;
-      email: string;
-      inward?: boolean;
-      quickly?: boolean;
-      song?: boolean;
-      songName?: string;
+      email: string | null;
+      inward: boolean;
+      quickly: boolean;
+      song: boolean;
+      songName?: string | null;
     }
   }
 }

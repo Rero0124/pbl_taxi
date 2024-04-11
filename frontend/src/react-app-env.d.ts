@@ -8,6 +8,14 @@ declare namespace NodeJS {
   }
 }
 
+type ActionType = "back" | "reload" | "main";
+
 interface JsonData {
   [key: string]: any;
+}
+
+interface BackendResponseData<Body = any> {
+  message: string;
+  action?: ActionType;
+  data?: Data; 
 }

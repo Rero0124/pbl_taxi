@@ -11,7 +11,7 @@ router.get('/', (req: GetRequest, res: ExpressResponse) => {
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
     
-    drivers.set(req.params.id, res);
+    drivers.set(req.session.user.id, res);
   } else {
     res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
   }

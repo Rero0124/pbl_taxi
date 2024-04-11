@@ -1,7 +1,8 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../../styles/Contents.css'
 import { FormEvent, useEffect, useState } from 'react';
 import { formJsonData, formValidationCheck } from '../../util/form';
+import { post } from '../../util/ajax';
 
 interface RegisterForm extends HTMLFormElement {
   readonly userId: HTMLInputElement;
@@ -13,24 +14,28 @@ interface RegisterForm extends HTMLFormElement {
 }
 
 const Register = (): JSX.Element => {
-  const registerFormSubmit = (e: FormEvent<RegisterForm>) => {
+  const navigate = useNavigate();
+
+  const registerFormSubmit = async (e: FormEvent<RegisterForm>) => {
     e.preventDefault();
 
     const formData: JsonData = formJsonData(e.currentTarget);
-
-
-
     if(formValidationCheck(e.currentTarget)) {
-      fetch(`${process.env.REACT_APP_BACKEND_URL}/user`, {
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          ...formData
-        })
+      const action = await post(`${process.env.REACT_APP_BACKEND_URL}/user`, {
+        body: JSON.stringify(formData)
+      }, (data: BackendResponseData) => {
+        if(data.message === "success") {
+          alert("성공");
+        } else {
+          alert(data.message);
+        }
       });
-      
+
+      switch(action) {
+        case "back": navigate(-1); break;
+        case "main": navigate('/'); break;
+        case "reload": navigate(0); break;
+      }
     }
   }
   

@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { GeoLocationPosition, locationDeny, locationSet, schdulerSet, schdulerUnSet } from "../../store/locationReducer";
 import { useSearchParams } from "react-router-dom";
+import { put } from "../../util/ajax";
 
 interface UserLocateAndTendency {
   userId: string,
@@ -127,12 +128,10 @@ const MapPage = () => {
       const locpos: GeoLocationPosition = geoloc.coords
       dispatch(locationSet(locpos))
       if(callback) callback();
-      fetch(`${process.env.REACT_APP_BACKEND_URL}/user/${user.id}/locate`, {
-        method: 'PUT',
-        headers: {
-          "Content-Type": "application/json"
-        },
+      put(`${process.env.REACT_APP_BACKEND_URL}/user/locate`, {
         body: JSON.stringify({ x: locpos.longitude, y: locpos.latitude })
+      }, (data: BackendResponseData) => {
+        
       });
     }, (err) => {
       if(err.code === err.PERMISSION_DENIED) {

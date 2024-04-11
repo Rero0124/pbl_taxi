@@ -21,7 +21,16 @@ const defaultTendency: UserTendency = {
  */
 router.post('/', async (req: PostRequest<UserCreateBody>, res: ExpressResponse) => {
   try {
-    if(req.body.name !== undefined && req.body.phone !== undefined && req.body.email !== undefined) {
+    const hasId = await prisma.user.findUnique({
+      select: {
+        id: true
+      },
+      where: {
+        id: req.body.id
+      }
+    })
+
+    if(hasId === null) {
       const user = await prisma.user.create({
         data: {
           id: req.body.id,
@@ -31,10 +40,10 @@ router.post('/', async (req: PostRequest<UserCreateBody>, res: ExpressResponse) 
           email: req.body.email,
         }
       })
-
-      res.status(200).json({ message: "success" });
+  
+      res.status(200).json({ message: "success", action: "main" });
     } else {
-      new Error('사용자 등록 인자 부족');
+      res.status(202).json({ message: "이미 해당 아이디가 존재합니다." });
     }
   } catch {
     res.status(500).send({ message: "Internal Server Error" })

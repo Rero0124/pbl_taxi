@@ -1,61 +1,41 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../../styles/Contents.css'
 import { FormEvent, useEffect } from 'react';
 import { formJsonData, formValidationCheck } from '../../util/form';
 import { User, userSet } from '../../store/userReducer';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
+import { post } from '../../util/ajax';
 
 interface LoginForm extends HTMLFormElement {
   readonly userId: HTMLInputElement;
   readonly userPw: HTMLInputElement;
 }
 
-interface LoginResponseData {
-  session: string;
-  user: User;
-}
-
 const Login = (): JSX.Element => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const user = useSelector((state: RootState) => state.user);
 
-  useEffect(() => {
-    if(user.id === '' && sessionStorage.getItem('session')) {
-      const session = sessionStorage.getItem('session');
-      fetch(`${process.env.REACT_APP_BACKEND_URL}/auth/${session}`, {
-        method: 'GET',
-        credentials: 'include'
-      }).then((res: Response) => res.json()).then((data: LoginResponseData) => {
-        sessionStorage.setItem("session", data.session);
-        dispatch(userSet(data.user));
-        return () => {
-          window.location.reload()
-        }
-      }).catch(() => {
-        sessionStorage.removeItem("session");
-      })
-    }
-  }, []);
-
-  const loginFormSubmit = (e: FormEvent<LoginForm>) => {    
+  const loginFormSubmit = async (e: FormEvent<LoginForm>) => {    
     e.preventDefault();
 
     if(formValidationCheck(e.currentTarget)) {
       const formData: JsonData = formJsonData(e.currentTarget);
-      fetch(`${process.env.REACT_APP_BACKEND_URL}/auth`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(formData)
-      }).then((res: Response) => res.json()).then((data: LoginResponseData) => {
-        sessionStorage.setItem("session", data.session)
-        dispatch(userSet(data.user));
-      }).catch(() => {
-        alert('로그인에 실패하였습니다')
+      const action = await post(`${process.env.REACT_APP_BACKEND_URL}/auth`, { 
+        body: JSON.stringify(formData) 
+      }, (data: BackendResponseData) => {
+        if(data.message === "success") {
+          dispatch(userSet(data.data)); 
+        } else {
+          alert(data.message);
+        }
       });
+
+      switch(action) {
+        case "back": navigate(-1); break;
+        case "main": navigate('/'); break;
+        case "reload": navigate(0); break;
+      }
     }
   }
 

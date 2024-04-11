@@ -1,12 +1,10 @@
 
 import { Link } from 'react-router-dom';
 import '../../styles/Layout.css'
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
-import { schdulerUnSet } from '../../store/locationReducer';
 
 const Header = (): JSX.Element => {
-  const dispatch = useDispatch();
   const isLogin = useSelector((state: RootState) => state.user.id !== '');
 
   return (
