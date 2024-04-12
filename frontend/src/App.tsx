@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import { BrowserView, MobileView, isIE, isMobile } from 'react-device-detect';
-import NotSupport from './components/pages/NotSupport';
-import Header from './components/layout/Header';
-import Navigation from './components/layout/Navigation';
-import Footer from './components/layout/Footer';
+import Header from './components/layout/header/Header';
+import ErrorPage from './components/pages/error/ErrorPage';
+import Navigation from './components/layout/navigation/Navigation';
+import Footer from './components/layout/footer/Footer';
 import { RootState } from './store/store';
 import { useDispatch, useSelector } from 'react-redux';
-import Section from './components/layout/Section';
+import Section from './components/layout/section/Section';
 import { User, userSet } from './store/userReducer';
 import { GeoLocationPosition, locationDeny, locationSet, schdulerSet, schdulerUnSet } from './store/locationReducer';
 import { put } from './util/ajax';
@@ -78,11 +78,11 @@ function App() {
   return (
     <div className="App">
       <MobileView>
-        <NotSupport browserType="모바일"/> 
+        <ErrorPage contentType="모바일"/> 
       </MobileView>
       <BrowserView>
         { isIE ? ( 
-          <NotSupport browserType="IE 브라우저"/> 
+          <ErrorPage contentType="IE 브라우저"/> 
         ) : (
           <>
             <Header />

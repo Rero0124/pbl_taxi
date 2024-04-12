@@ -6,14 +6,15 @@ import { XYZ } from "ol/source";
 import VectorSource from "ol/source/Vector";
 import Icon from "ol/style/Icon";
 import Style from "ol/style/Style";
-import { CSSProperties, useEffect, useState } from "react";
-import markerImage from "../../images/marker.png";
+import { useEffect, useState } from "react";
+import markerImage from "../../../images/marker.png";
 import { Coordinate } from "ol/coordinate";
 import fetchJsonp from "fetch-jsonp";
 import Text from "ol/style/Text";
 import { useSelector } from "react-redux";
-import { RootState } from "../../store/store";
+import { RootState } from "../../../store/store";
 import { useSearchParams } from "react-router-dom";
+import { MapContainer, MapPageContainer } from "./StyledMapPage";
 
 interface UserLocateAndTendency {
   userId: string,
@@ -77,11 +78,6 @@ interface LocateResponse {
       }[]
     }
   }
-}
-
-const style: CSSProperties = {
-  width: "100%",
-  height: "84vh"
 }
 
 const baseLayer = new TileLayer({
@@ -214,9 +210,9 @@ const MapPage = () => {
   }, [])
 
   return (
-    <div className="main">
-      <div id='map' style={style}></div>
-    </div>
+    <MapPageContainer>
+      <MapContainer id="map"></MapContainer>
+    </MapPageContainer>
   )
 }
 

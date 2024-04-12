@@ -1,5 +1,4 @@
 import { Link, useNavigate } from 'react-router-dom';
-import '../../styles/Contents.css';
 import { FormEvent } from 'react';
 
 interface SearchForm extends HTMLFormElement {
