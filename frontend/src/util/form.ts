@@ -2,19 +2,20 @@ export const formValidationCheck = <T extends HTMLFormElement>(form: T): boolean
   let formValidate = true;
   form.querySelectorAll("input, select").forEach((el: Element) => {
     if(el instanceof HTMLInputElement || el instanceof HTMLSelectElement) {
+      const invalidEl = document.getElementById(`${el.name}Invalid`);
       if(el.type === "radio") {
         if(form[el.name].value.trim() === "") {
           formValidate = false;
-          document.getElementById(`${el.name}Invalid`)?.classList.remove("display-none");
+          if(invalidEl) invalidEl.style.display = "block";
         } else {
-          document.getElementById(`${el.name}Invalid`)?.classList.add("display-none");
+          if(invalidEl) invalidEl.style.display = "none";
         }
       } else {
         if(el.value.trim() === "" && !el.classList.contains("not-validation")) {
           formValidate = false;
-          document.getElementById(`${el.name}Invalid`)?.classList.remove("display-none");
+          if(invalidEl) invalidEl.style.display = "block";
         } else {
-          document.getElementById(`${el.name}Invalid`)?.classList.add("display-none");
+          if(invalidEl) invalidEl.style.display = "none";
         }
       }
     }
