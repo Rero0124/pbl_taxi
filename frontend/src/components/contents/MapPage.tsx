@@ -122,7 +122,6 @@ const MapPage = () => {
       let searchFail = false;
 
       const searchTxt = searchParams.get("searchTxt");
-      console.log(map)
       if(searchTxt) {
         const res = (await locateSearch(searchTxt)).response;
         if(res.record.current > 0 && res.result?.items[0].address) {
@@ -133,8 +132,6 @@ const MapPage = () => {
           searchFail = true;
         }
       }
-      console.log(centerCoordinate, centerText);
-      console.log(searchTxt === null || searchFail)
       
       if(searchTxt === null || searchFail){
         centerCoordinate = [location.location.longitude, location.location.latitude];
