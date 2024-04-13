@@ -28,14 +28,16 @@ export const SearchForm = styled.form`
 `;
 
 export const SearchInput = styled.input`
-  width: 30vw;
+  width: 40vh;
   height: 3.2vh;
-  margin-right: 3vh;
+  max-width: 40vw;
+  margin-right: 1vh;
 `;
 
 export const SearchSubmitButton = styled.button`
-  width: 10vw;
+  width: 10vh;
   height: 3.2vh;
+  max-width: 10vw;
   border-radius: 0.5vh;
 `;
 
@@ -45,13 +47,22 @@ export const BookmarkContainer = styled.div`
   height: 4vh;
   margin-top: 0.4vh;
   justify-content: center;
+  align-items: center;
 `;
 
-export const BookmarkButton = styled.button`
-  width: 6vw;
+export const BookmarkLink = styled(Link)`
   height: 3.2vh;
-  margin-right: 0.3vh;
-  border-radius: 0.5vh;
+  margin: 0 0.1vh;
+  padding: 0 1vh;
+  text-decoration: none;
+`;
+
+export const BookmarkStick = styled.span`
+  display: inline-block;
+  width: 2px;
+  height: 2.4vh;
+  margin-top: -0.9vh;
+  background-color: gray;
 `;
 
 export const MainBodyContainer = styled.div`
@@ -76,30 +87,40 @@ export const MenuTable = styled.div`
 export const MenuTableTr = styled.div`
   display: flex;
   width: 80vw;
-  height: 8.5vw;
+  height: 10vh;
   justify-content: center;
   align-items: center;
 `;
 
 export const MenuTableTd = styled.div`
-  width: 8.5vw;
-  height: 8.5vw;
-  margin: 1vw;
+  width: 10vh;
+  height: 10vh;
+  max-width: 10vw;
+  max-height: 10vw;
+  margin: 1vh;
 `;
 
 export const MenuIconLink = styled(Link)`
   display: flex;
-  width: 8.5vw;
-  height: 8.5vw;
+  width: 10vh;
+  height: 10vh;
+  max-width: 10vw;
+  max-height: 10vw;
   flex-direction: column;
+  text-decoration: none;
 `;
 
 export const MenuIconImg = styled.img`
-  width: 8.5vw;
-  height: 7vw;
+  width: 10vh;
+  height: 8vh;
+  max-width: 10vw;
+  max-height: 8vw;
+  object-fit: fill;
 `;
 
 export const MenuIconName = styled.span`
-  width: 8.5vw;
-  height: 1.5vw;
+  width: 10vh;
+  height: 2vh;
+  max-width: 10vw;
+  max-height: 2vw;
 `;

@@ -11,9 +11,9 @@ const MyPage = () => {
         <MyPageHeaderProfileImg />
         <MyPageHeaderName>{user.name}</MyPageHeaderName>
       </MyPageHeaderContainer>
-      <MyPageBodyContainer className="my-page-body-container">
-        <MyPageBodyIconContainer className="my-page-body-icon-container">
-          <MyPageBodyIconTable className="my-page-body-icon-row">
+      <MyPageBodyContainer>
+        <MyPageBodyIconContainer>
+          <MyPageBodyIconTable>
             <MyPageBodyIconTableTr>
               <MyPageBodyIconTableTd>
                 <MyPageBodyIconLink to="/profile">
