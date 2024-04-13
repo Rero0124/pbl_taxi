@@ -118,7 +118,7 @@ const MapPage = () => {
       let searchFail = false;
 
       const searchTxt = searchParams.get("searchTxt");
-      if(searchTxt) {
+      if(searchTxt !== null && searchTxt !== "") {
         const res = (await locateSearch(searchTxt)).response;
         if(res.record.current > 0 && res.result?.items[0].address) {
           const point = res.result.items[0].point;
@@ -129,7 +129,7 @@ const MapPage = () => {
         }
       }
       
-      if(searchTxt === null || searchFail){
+      if(searchTxt === null || searchTxt === "" || searchFail){
         centerCoordinate = [location.location.longitude, location.location.latitude];
         const address = await addressSearch(centerCoordinate)
         centerText = address.response.result[address.response.result.length === 2 ? 1 : 0].text;
