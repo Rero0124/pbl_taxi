@@ -25,15 +25,15 @@ export const MyPageBodyIconContainer = styled.div`
 
 `;
 
-export const MyPageBodyIconTable = styled.table`
+export const MyPageBodyIconTable = styled.div`
 
 `;
 
-export const MyPageBodyIconTableTr = styled.tr`
+export const MyPageBodyIconTableTr = styled.div`
 
 `;
 
-export const MyPageBodyIconTableTd = styled.td`
+export const MyPageBodyIconTableTd = styled.div`
 
 `;
 
