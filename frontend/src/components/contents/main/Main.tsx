@@ -1,14 +1,14 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { FormEvent } from 'react';
 import { BookmarkButton, BookmarkContainer, MainBodyContainer, MainContainer, MainHeaderContainer, MenuContainer, MenuIconImg, MenuIconLink, MenuIconName, MenuTable, MenuTableTd, MenuTableTr, SearchContainer, SearchForm, SearchInput, SearchSubmitButton } from './StyledMain';
 
-interface SearchForm extends HTMLFormElement {
+interface SearchFormType extends HTMLFormElement {
   searchTxt: HTMLInputElement;
 }
 
 const Main = () => {
   const navigation = useNavigate();
-  const searchAddress = (e: FormEvent<SearchForm>) => {
+  const searchAddress = (e: FormEvent<SearchFormType>) => {
     e.preventDefault();
     const url = '/map?searchTxt=' + e.currentTarget.searchTxt.value;
     navigation(url);

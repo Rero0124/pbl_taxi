@@ -4,7 +4,7 @@ import { formJsonData, formValidationCheck } from '../../../../util/form';
 import { post } from '../../../../util/ajax';
 import { RegisterContainer, RegisterForm, RegisterFormTitle, RegisterInput, RegisterInputContainer, RegisterInputInvalidComment, RegisterInputLabel, RegisterInputSubContainer, RegisterMoveContainer, RegisterMoveLi, RegisterMoveLink, RegisterMoveUl, RegisterSubmitButton } from './StyledRegister';
 
-interface RegisterForm extends HTMLFormElement {
+interface RegisterFormType extends HTMLFormElement {
   readonly userId: HTMLInputElement;
   readonly userPw: HTMLInputElement;
   readonly userPwCheck: HTMLInputElement;
@@ -16,7 +16,7 @@ interface RegisterForm extends HTMLFormElement {
 const Register = (): JSX.Element => {
   const navigate = useNavigate();
 
-  const registerFormSubmit = async (e: FormEvent<RegisterForm>) => {
+  const registerFormSubmit = async (e: FormEvent<RegisterFormType>) => {
     e.preventDefault();
 
     const formData: JsonData = formJsonData(e.currentTarget);

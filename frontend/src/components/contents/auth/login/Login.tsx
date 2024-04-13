@@ -6,7 +6,7 @@ import { useDispatch } from 'react-redux';
 import { post } from '../../../../util/ajax';
 import { LoginContainer, LoginForm, LoginFormTitle, LoginInput, LoginInputContainer, LoginInputInvalidComment, LoginInputLabel, LoginInputSubContainer, LoginMoveContainer, LoginMoveLi, LoginMoveLink, LoginMoveUl, LoginSubmitButton } from './StyledLogin';
 
-interface LoginForm extends HTMLFormElement {
+interface LoginFormType extends HTMLFormElement {
   readonly userId: HTMLInputElement;
   readonly userPw: HTMLInputElement;
 }
@@ -15,7 +15,7 @@ const Login = (): JSX.Element => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const loginFormSubmit = async (e: FormEvent<LoginForm>) => {    
+  const loginFormSubmit = async (e: FormEvent<LoginFormType>) => {    
     e.preventDefault();
 
     if(formValidationCheck(e.currentTarget)) {
