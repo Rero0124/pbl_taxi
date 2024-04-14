@@ -1,5 +1,6 @@
 import { RootState } from "../../../store/store";
 import { useSelector } from "react-redux";
+import icon from "../../../images/test-icon.png";
 import { MyPageBodyContainer, MyPageBodyIconContainer, MyPageBodyIconImg, MyPageBodyIconLink, MyPageBodyIconName, MyPageBodyIconTable, MyPageBodyIconTableTd, MyPageBodyIconTableTr, MyPageContainer, MyPageHeaderContainer, MyPageHeaderName, MyPageHeaderProfileImg  } from "./StyledMyPage";
 
 const MyPage = () => {
@@ -17,19 +18,19 @@ const MyPage = () => {
             <MyPageBodyIconTableTr>
               <MyPageBodyIconTableTd>
                 <MyPageBodyIconLink to="/profile">
-                  <MyPageBodyIconImg />
+                  <MyPageBodyIconImg alt="프로필 설정" src={icon} />
                   <MyPageBodyIconName>프로필 설정</MyPageBodyIconName>
                 </MyPageBodyIconLink>
               </MyPageBodyIconTableTd>
               <MyPageBodyIconTableTd>
                 <MyPageBodyIconLink to="/tendency">
-                  <MyPageBodyIconImg />
+                  <MyPageBodyIconImg alt="성향 설정" src={icon} />
                   <MyPageBodyIconName>성향 설정</MyPageBodyIconName>
                 </MyPageBodyIconLink>
               </MyPageBodyIconTableTd>
               <MyPageBodyIconTableTd>
                 <MyPageBodyIconLink to="/setting">
-                  <MyPageBodyIconImg />
+                  <MyPageBodyIconImg alt="설정 아이콘" src={icon} />
                   <MyPageBodyIconName>앱 설정</MyPageBodyIconName>
                 </MyPageBodyIconLink>
               </MyPageBodyIconTableTd>
