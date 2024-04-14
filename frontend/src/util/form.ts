@@ -55,11 +55,12 @@ export const formJsonData = <T extends HTMLFormElement>(form: T): JsonData  => {
 }
 
 export const customSelect = (elements: CustomSelectElement, option?: CustomSelectOption) => {
-  const select = document.querySelector(`.${elements.selectId}`);
-  const view = document.querySelector(`.${elements.viewId}`);
-  const optionContainer = document.querySelector(`.${elements.optionContainerId}`);
+  const select: HTMLSelectElement | null = document.querySelector(`.${elements.selectId}`);
+  const view: HTMLDivElement | null = document.querySelector(`.${elements.viewId}`);
+  const optionContainer: HTMLUListElement | null = document.querySelector(`.${elements.optionContainerId}`);
 
   if(select !== null && view !== null && optionContainer !== null) {
+    let optionShow = false;
     const options = optionContainer.querySelectorAll("li");
     
     const hiddenInput = document.createElement("input");
@@ -85,10 +86,12 @@ export const customSelect = (elements: CustomSelectElement, option?: CustomSelec
     })
 
     select.addEventListener("click", () => {
-      if(optionContainer.getAttribute("style")) {
-        optionContainer.removeAttribute("style")
+      if(!optionShow) {
+        optionContainer.style.display = "block";
+        optionShow = true;
       } else {
-        optionContainer.setAttribute("style", "display: block")
+        optionContainer.style.display = "none"
+        optionShow = false;
       }
     })
   } 

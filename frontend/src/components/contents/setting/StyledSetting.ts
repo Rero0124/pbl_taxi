@@ -45,6 +45,7 @@ export const SettingListItemValueSelect = styled.div`
   position: relative;
   width: 50vw;
   height: 9vh;
+  cursor: point;
 `;
 
 export const SettingListItemValueSelectView = styled.div`
