@@ -78,7 +78,12 @@ function App() {
   return (
     <div className="App">
       <MobileView>
-        <ErrorPage contentType="모바일"/> 
+        <>
+          <Header />
+          <Section />
+          <Navigation />
+          <Footer />
+        </>
       </MobileView>
       <BrowserView>
         { isIE ? ( 
