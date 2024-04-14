@@ -25,11 +25,13 @@ function App() {
       const locpos: GeoLocationPosition = geoloc.coords
       dispatch(locationSet(locpos))
       if(callback) callback();
-      put(`${process.env.REACT_APP_BACKEND_URL}/user/locate`, {
-        body: JSON.stringify({ x: locpos.longitude, y: locpos.latitude })
-      }, (data: BackendResponseData) => {
-        
-      });
+      if(appType === "driver") {
+        put(`${process.env.REACT_APP_BACKEND_URL}/user/locate`, {
+          body: JSON.stringify({ x: locpos.longitude, y: locpos.latitude })
+        }, (data: BackendResponseData) => {
+          
+        });
+      }
     }, (err) => {
       if(err.code === err.PERMISSION_DENIED) {
         dispatch(schdulerUnSet());
