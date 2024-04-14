@@ -6,13 +6,13 @@ export const HeaderContainer = styled.div`
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
+  width: 100vw;
   height: 6vh;
 `;
 
 export const HeaderTitleContainer = styled.div`
   display: flex;
-  width: 80%;
+  width: 100vw;
   text-align: left;
 `;
 
@@ -26,18 +26,4 @@ export const HeaderTitle = styled.p`
 
 export const HeaderTitleSpan = styled.span`
   
-`;
-
-export const HeaderLogoutContainer = styled.div`
-  width: 20%;
-  margin-right: 3vh;
-  text-align: end;
-`;
-
-export const HeaderLogout = styled.p`
-
-`;
-
-export const HeaderLogoutLink = styled(Link)`
-
 `;
