@@ -26,6 +26,7 @@ model User {
   init          Boolean   @default(true)
 
   payment               UserPayment?
+  message               UserMessage[]
   locate                UserLocate?
   tendency              UserTendency?
   loginHistory          UserLoginHistory[]
@@ -50,9 +51,22 @@ model UserPayment {
   @@index([bankName, bankNumber])
 }
 
+model UserMessage {
+  id        Int     @default(autoincrement())
+  userId    String
+  type      String
+  title     String
+  content   String
+  
+  user      User    @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  @@id([id, userId])
+}
+
 model UserLocate {
   userId  String  @id
   geom    Unsupported("geometry(Point, 4326)")
+  type    String  @default("customer")
 
   user    User    @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
