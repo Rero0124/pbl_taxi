@@ -17,8 +17,8 @@ const Setting = () => {
             <SettingListItemValueSelect>
               <SettingListItemValueSelectView />
               <SettingListItemValueOptionContainer>
-                <SettingListItemValueOptionFirst data-value="tendency">성향 검색 - 맞춤형 검색을 사용합니다</SettingListItemValueOptionFirst>
-                <SettingListItemValueOption data-value="speed">빠른 검색 - 맞춤형 검색을 사용하지 않습니다.</SettingListItemValueOption>
+                <SettingListItemValueOptionFirst data-value="tendency">성향 검색 - 맞춤형 검색 사용</SettingListItemValueOptionFirst>
+                <SettingListItemValueOption data-value="speed">빠른 검색 - 맞춤형 검색 사용안함</SettingListItemValueOption>
               </SettingListItemValueOptionContainer>
             </SettingListItemValueSelect>
           </SettingListItemValueContainer>
