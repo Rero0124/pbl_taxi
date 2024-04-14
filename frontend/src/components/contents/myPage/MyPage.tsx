@@ -30,7 +30,7 @@ const MyPage = () => {
               <MyPageBodyIconTableTd>
                 <MyPageBodyIconLink to="/setting">
                   <MyPageBodyIconImg />
-                  <MyPageBodyIconName>엡 설정</MyPageBodyIconName>
+                  <MyPageBodyIconName>앱 설정</MyPageBodyIconName>
                 </MyPageBodyIconLink>
               </MyPageBodyIconTableTd>
             </MyPageBodyIconTableTr>

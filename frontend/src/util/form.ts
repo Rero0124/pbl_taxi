@@ -1,3 +1,13 @@
+interface CustomSelectElement {
+  selectId: string;
+  viewId: string;
+  optionContainerId: string;
+}
+
+interface CustomSelectOption {
+  default?: string;
+}
+
 export const formValidationCheck = <T extends HTMLFormElement>(form: T): boolean => {
   let formValidate = true;
   form.querySelectorAll("input, select").forEach((el: Element) => {
@@ -42,4 +52,44 @@ export const formJsonData = <T extends HTMLFormElement>(form: T): JsonData  => {
     }
   });
   return data;
+}
+
+export const customSelect = (elements: CustomSelectElement, option?: CustomSelectOption) => {
+  const select = document.querySelector(`.${elements.selectId}`);
+  const view = document.querySelector(`.${elements.viewId}`);
+  const optionContainer = document.querySelector(`.${elements.optionContainerId}`);
+
+  if(select !== null && view !== null && optionContainer !== null) {
+    const options = optionContainer.querySelectorAll("li");
+    
+    const hiddenInput = document.createElement("input");
+    hiddenInput.type = "hidden";
+    select.appendChild(hiddenInput);
+
+    const changeValue = (el: HTMLLIElement) => {
+      if(el.dataset.value) {
+        hiddenInput.value = el.dataset.value;
+        view.innerHTML = el.innerHTML;
+      }
+    }
+
+    options.forEach((el) => {
+      if(option?.default && option?.default === el.dataset.value) {
+        changeValue(el);
+      }
+      el.addEventListener("click", () => {
+        if(el.dataset.value) {
+          changeValue(el);
+        }
+      });
+    })
+
+    select.addEventListener("click", () => {
+      if(optionContainer.getAttribute("style")) {
+        optionContainer.removeAttribute("style")
+      } else {
+        optionContainer.setAttribute("style", "display: block")
+      }
+    })
+  } 
 }

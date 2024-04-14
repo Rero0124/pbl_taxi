@@ -10,6 +10,7 @@ import Main from '../../contents/main/Main';
 import MyPage from '../../contents/myPage/MyPage';
 import ErrorPage from '../../pages/error/ErrorPage';
 import { SectionContainer } from './StyledSection';
+import Setting from '../../contents/setting/Setting';
 
 const Section = (): JSX.Element => {
   const isLogin = useSelector((state: RootState) => state.user.id !== '');
@@ -29,6 +30,7 @@ const Section = (): JSX.Element => {
           <Route path="/map" element={<MapPage />} />
           <Route path="/my" element={<MyPage />} />
           <Route path="/tendency" element={<Tendency/>} />
+          <Route path="/setting" element={<Setting />}/>
           <Route path="/login" element={<Navigate replace to="/" />} />
           <Route path="/register" element={<Navigate replace to="/" />} />
           <Route path="/logout" element={<Logout />}/>
