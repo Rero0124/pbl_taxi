@@ -10,7 +10,7 @@ import cors from 'cors';
 import user from './router/user';
 import auth from './router/auth';
 import search from './router/search';
-import driver from './router/driver';
+import driver from './router/message';
 
 dotenv.config();
 
@@ -55,6 +55,6 @@ server.use(expressSession({
 server.use('/user', user);
 server.use('/auth', auth);
 server.use('/search', search);
-server.use('/driver', driver);
+server.use('/message', driver);
 
 https.createServer(sslOption, server).listen(port, () => { console.log('서버 시작') })
