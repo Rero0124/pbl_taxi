@@ -14,7 +14,7 @@ const Setting = () => {
         <SettingListItem>
           <SettingListItemTitle>기본 검색 설정</SettingListItemTitle>
           <SettingListItemValueContainer>
-            <SettingListItemValueSelect>
+            <SettingListItemValueSelect data-name="searchType">
               <SettingListItemValueSelectView />
               <SettingListItemValueOptionContainer>
                 <SettingListItemValueOptionFirst data-value="tendency">성향 검색 - 맞춤형 검색 사용</SettingListItemValueOptionFirst>

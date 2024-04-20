@@ -1,11 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 import userReducer from "./userReducer";
 import locationReducer from "./locationReducer";
+import settingReducer from "./settingReducer";
 
 export const useStore = configureStore({
   reducer: {
     user: userReducer,
-    location: locationReducer
+    location: locationReducer,
+    setting: settingReducer
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({
     serializableCheck: false

@@ -11,12 +11,16 @@ import MyPage from '../../contents/myPage/MyPage';
 import ErrorPage from '../../pages/error/ErrorPage';
 import { SectionContainer } from './StyledSection';
 import Setting from '../../contents/setting/Setting';
+import Popup from '../popup/Popup';
+import { useState } from 'react';
 
 const Section = (): JSX.Element => {
   const isLogin = useSelector((state: RootState) => state.user.id !== '');
+  
 
   return (
     <SectionContainer>
+      <Popup/>
       {!isLogin ? (
         <Routes>
           <Route path="/*" element={<Login />} />

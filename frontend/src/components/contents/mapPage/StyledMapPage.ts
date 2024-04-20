@@ -1,7 +1,9 @@
 import styled from "styled-components"
 
 export const MapPageContainer = styled.div`
-  
+  position: relative;
+  width: 100vw;
+  height: 84vh;
 `;
 
 export const MapContainer = styled.div`

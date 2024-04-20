@@ -7,6 +7,17 @@ const allUsers = new Map<string, ExpressResponse>();
 const customers = new Map<string, ExpressResponse>();
 const drivers = new Map<string, ExpressResponse>();
 
+router.delete('/', (req: DeleteRequest, res: ExpressResponse) => {
+  if(req.session.user !== undefined) {
+    const userId = req.session.user.id;
+    allUsers.delete(userId);
+    customers.delete(userId);
+    drivers.delete(userId);
+  } else {
+    res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
+  }
+})
+
 router.get('/:appType', (req: GetRequest<{appType: string}>, res: ExpressResponse) => {
   if(req.session.user !== undefined) {
     res.setHeader("Content-Type", "text/event-stream");

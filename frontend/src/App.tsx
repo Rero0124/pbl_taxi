@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Section from './components/layout/section/Section';
 import { User, userSet } from './store/userReducer';
 import { GeoLocationPosition, locationDeny, locationSet, schdulerSet, schdulerUnSet } from './store/locationReducer';
-import { put } from './util/ajax';
+import { del, put } from './util/ajax';
 
 function App() {
   const dispatch = useDispatch();
@@ -42,10 +42,13 @@ function App() {
 
   useEffect(() => {
     if(user.id !== "") {
-      if(serverEvent !== null) { serverEvent.close(); }
-      setServerEvent(new EventSource(`${process.env.REACT_APP_BACKEND_URL}/driver`, { withCredentials: true }));
+      if(serverEvent !== null) { 
+        del(`${process.env.REACT_APP_BACKEND_URL}/message`, {}, () => {});
+        serverEvent.close(); 
+      }
+      setServerEvent(new EventSource(`${process.env.REACT_APP_BACKEND_URL}/message/${appType}`, { withCredentials: true }));
     }
-  }, [user])
+  }, [user, appType])
 
   useEffect(() => {
     if(serverEvent) {
@@ -66,7 +69,7 @@ function App() {
       })
     }
 
-    if(isMobile) setAppType("driver");
+    setAppType("driver");
 
     if(location.isEnable) {
       updateGeoLocation();

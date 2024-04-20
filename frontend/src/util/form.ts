@@ -65,6 +65,7 @@ export const customSelect = (elements: CustomSelectElement, option?: CustomSelec
     
     const hiddenInput = document.createElement("input");
     hiddenInput.type = "hidden";
+    hiddenInput.name = select.dataset.name ?? "";
     select.appendChild(hiddenInput);
 
     const changeValue = (el: HTMLLIElement) => {

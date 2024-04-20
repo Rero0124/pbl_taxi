@@ -209,6 +209,8 @@ const MapPage = () => {
     })()
   }, [])
 
+  
+
   return (
     <MapPageContainer>
       <MapContainer id="map"></MapContainer>
