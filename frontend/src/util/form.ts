@@ -1,3 +1,5 @@
+import { SettingOptionData } from "../store/settingReducer";
+
 interface CustomSelectElement {
   selectId: string;
   viewId: string;
@@ -5,7 +7,7 @@ interface CustomSelectElement {
 }
 
 interface CustomSelectOption {
-  default?: string;
+  default?: SettingOptionData;
 }
 
 export const formValidationCheck = <T extends HTMLFormElement>(form: T): boolean => {
@@ -52,48 +54,4 @@ export const formJsonData = <T extends HTMLFormElement>(form: T): JsonData  => {
     }
   });
   return data;
-}
-
-export const customSelect = (elements: CustomSelectElement, option?: CustomSelectOption) => {
-  const select: HTMLSelectElement | null = document.querySelector(`.${elements.selectId}`);
-  const view: HTMLDivElement | null = document.querySelector(`.${elements.viewId}`);
-  const optionContainer: HTMLUListElement | null = document.querySelector(`.${elements.optionContainerId}`);
-
-  if(select !== null && view !== null && optionContainer !== null) {
-    let optionShow = false;
-    const options = optionContainer.querySelectorAll("li");
-    
-    const hiddenInput = document.createElement("input");
-    hiddenInput.type = "hidden";
-    hiddenInput.name = select.dataset.name ?? "";
-    select.appendChild(hiddenInput);
-
-    const changeValue = (el: HTMLLIElement) => {
-      if(el.dataset.value) {
-        hiddenInput.value = el.dataset.value;
-        view.innerHTML = el.innerHTML;
-      }
-    }
-
-    options.forEach((el) => {
-      if(option?.default && option?.default === el.dataset.value) {
-        changeValue(el);
-      }
-      el.addEventListener("click", () => {
-        if(el.dataset.value) {
-          changeValue(el);
-        }
-      });
-    })
-
-    select.addEventListener("click", () => {
-      if(!optionShow) {
-        optionContainer.style.display = "block";
-        optionShow = true;
-      } else {
-        optionContainer.style.display = "none"
-        optionShow = false;
-      }
-    })
-  } 
 }

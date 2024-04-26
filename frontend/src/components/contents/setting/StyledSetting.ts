@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 
+interface Props {
+  display?: boolean;
+}
+
 export const SettingContainer = styled.div`
   
 `;
@@ -54,8 +58,8 @@ export const SettingListItemValueSelectView = styled.div`
   line-height: 9vh;
 `;
 
-export const SettingListItemValueOptionContainer = styled.ul`
-  display: none;
+export const SettingListItemValueOptionContainer = styled.ul<Props>`
+  display: ${props => ( props.display ? "block" : "none" )};
   position: absolute;
   top: 9vh;
   left: 0px;
@@ -67,8 +71,8 @@ export const SettingListItemValueOptionContainer = styled.ul`
   z-index: 10;
 `;
 
-export const SettingListItemValueOption = styled.li`
-  display: block;
+export const SettingListItemValueOption = styled.li<Props>`
+  display: ${props => ( props.display ? "block" : "none" )};
   text-align: center;
   line-height: 9vh;
   border: 0.1vh solid black;
