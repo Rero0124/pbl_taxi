@@ -114,7 +114,7 @@ router.put('/locate', async (req: PutRequest<UserLocateBody>, res: ExpressRespon
   
       const query = Prisma.raw( locate === null ? 
                         `INSERT INTO "UserLocate" ("userId", "geom") VALUES ('${req.session.user.id}', ST_GeomFromText('Point(${req.body.x} ${req.body.y})', 4326))` : 
-                        `UPDATE "UserLocate" SET "geom" = ST_GeomFromText('Point(${req.body.x} ${req.body.y})', 4326) WHERE "userId" = '${req.session.user.id}'`)
+                        `UPDATE "UserLocate" SET "geom" = ST_GeomFromText('Point(${req.body.x} ${req.body.y})', 4326), "updateAt" = NOW() WHERE "userId" = '${req.session.user.id}'`)
   
       await prisma.$executeRaw(query)
   
