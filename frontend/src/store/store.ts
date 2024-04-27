@@ -2,12 +2,14 @@ import { configureStore } from "@reduxjs/toolkit";
 import userReducer from "./userReducer";
 import locationReducer from "./locationReducer";
 import settingReducer from "./settingReducer";
+import popupReducer from "./popupReducer";
 
 export const useStore = configureStore({
   reducer: {
     user: userReducer,
     location: locationReducer,
-    setting: settingReducer
+    setting: settingReducer,
+    popup: popupReducer
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({
     serializableCheck: false

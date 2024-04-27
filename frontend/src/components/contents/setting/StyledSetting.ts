@@ -91,3 +91,25 @@ export const SettingListItemValueInput = styled.input`
 export const SettingListItemValueInputLabel = styled.label`
 
 `;
+
+export const SettingSaveContainer = styled(SettingListItem)`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  border-top: 0.1vh solid black;
+`;
+
+export const SettingCancel = styled.button`
+  width: calc(50vw - 0.1vh);
+  height: 9vh;
+  border: 0;
+  border-right: 0.1vh solid black;
+  background-color: transparent;
+`;
+
+export const SettingSave = styled.button`
+  width: 50vw;
+  height: 9vh;
+  border: 0;
+  background-color: transparent;
+`;
