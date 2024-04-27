@@ -64,8 +64,9 @@ model UserMessage {
 }
 
 model UserLocate {
-  userId  String  @id
-  geom    Unsupported("geometry(Point, 4326)")
+  userId        String  @id
+  geom          Unsupported("geometry(Point, 4326)")
+  createdAt     DateTime  @default(now())
 
   user    User    @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
