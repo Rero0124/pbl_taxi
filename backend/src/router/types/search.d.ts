@@ -2,7 +2,7 @@ interface UserIdParam {
   id: string
 }
 
-interface LocateBody {
+interface LocateQuery {
   x: string;
   y: string;
 }
