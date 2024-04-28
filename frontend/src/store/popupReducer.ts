@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface Popup {
-  display: boolean;
+  display: number;
   title: string;
   content: string;
 }
@@ -12,7 +12,7 @@ export interface PopupParam {
 }
 
 const initPopup: Popup = {
-  display: false,
+  display: 0,
   title: "",
   content: ""
 }
@@ -25,10 +25,10 @@ const settingSlice = createSlice({
       return { ...state, ...action.payload };
     },
     popupShow(state) {
-      return { ...state, display: true };
+      return { ...state, display: 1 };
     },
     popupClose(state) {
-      return { ...state, display: false };
+      return { ...state, display: 0 };
     }
   }
 })

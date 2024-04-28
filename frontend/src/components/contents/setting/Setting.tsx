@@ -61,9 +61,9 @@ const Setting = () => {
             <SettingListItemValueContainer>
               <SettingListItemValueSelect data-type="searchType" onClick={clickedSelect}>
                 <SettingListItemValueSelectView>{searchType.text}</SettingListItemValueSelectView>
-                <SettingListItemValueOptionContainer display={searchTypeSelectClicked}>
-                  <SettingListItemValueOptionFirst display={searchType.value !== "tendency"} data-type="searchType" data-value="tendency" onClick={changeSetting}>{searchTypeTendencyOption.text}</SettingListItemValueOptionFirst>
-                  <SettingListItemValueOption display={searchType.value !== "speed"} data-type="searchType" data-value="speed" onClick={changeSetting}>{searchTypeSpeedOption.text}</SettingListItemValueOption>
+                <SettingListItemValueOptionContainer display={searchTypeSelectClicked ? 1 : 0}>
+                  <SettingListItemValueOptionFirst display={searchType.value !== "tendency" ? 1 : 0} data-type="searchType" data-value="tendency" onClick={changeSetting}>{searchTypeTendencyOption.text}</SettingListItemValueOptionFirst>
+                  <SettingListItemValueOption display={searchType.value !== "speed" ? 1 : 0} data-type="searchType" data-value="speed" onClick={changeSetting}>{searchTypeSpeedOption.text}</SettingListItemValueOption>
                 </SettingListItemValueOptionContainer>
               </SettingListItemValueSelect>
             </SettingListItemValueContainer>

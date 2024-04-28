@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 
 interface Props {
-  display?: boolean;
+  display?: number;
 }
 
 export const SettingContainer = styled.div`

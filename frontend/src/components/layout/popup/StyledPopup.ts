@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 interface Props {
-  display?: boolean;
+  display?: number;
 }
 
 export const PopupContainer = styled.div<Props>`
