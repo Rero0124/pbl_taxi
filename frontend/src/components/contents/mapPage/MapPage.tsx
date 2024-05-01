@@ -15,6 +15,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import { useSearchParams } from "react-router-dom";
 import { MapContainer, MapPageContainer } from "./StyledMapPage";
+import { get } from "../../../util/ajax";
 
 interface UserLocateAndTendency {
   userId: string,
@@ -105,115 +106,112 @@ const locateSearch = async (searchTxt: string): Promise<LocateResponse> => {
 }
 
 const MapPage = () => {
-  const user = useSelector((state: RootState) => state.user);
   const location = useSelector((state: RootState) => state.location);
+  const setting = useSelector((state: RootState) => state.setting);
   
   const [searchParams] = useSearchParams();
-  const [map, setMap] = useState<Map | null>();
+
+  const [currentElement, setCurrentElement] = useState<JSX.Element>(<></>)
+
+  const mapPage = (
+    <MapContainer id="map"></MapContainer>
+  );
+
+  const searchPage = (
+    <></>
+  );
+
+  const setMap = async () => {
+    let centerCoordinate = [126.97831737391309, 37.566619172927574];
+    let centerText = "시청";
+    let searchFail = false;
+
+    const searchTxt = searchParams.get("searchTxt");
+    if(searchTxt !== null && searchTxt !== "") {
+      const res = (await locateSearch(searchTxt)).response;
+      if(res.record.current > 0 && res.result?.items[0].address) {
+        const point = res.result.items[0].point;
+        centerCoordinate = [Number(point.x), Number(point.y)];
+        centerText = res.result.items[0].address.road;
+      } else {
+        searchFail = true;
+      }
+    }
+    
+    if(searchTxt === null || searchTxt === "" || searchFail){
+      centerCoordinate = [location.location.longitude, location.location.latitude];
+      const address = await addressSearch(centerCoordinate)
+      centerText = address.response.result[address.response.result.length === 2 ? 1 : 0].text;
+    }
+    
+    const markerSource = new VectorSource();
+
+    const markerFeature = new Feature({
+      geometry: new Point(centerCoordinate)
+    });
+
+    markerSource.addFeature(markerFeature);
+    
+    const markerLayerStyle = new Style({
+      image: new Icon({
+        opacity: 1,
+        scale: 0.1,
+        src: markerImage
+      }),
+      text: new Text({
+        text: centerText, 
+        scale: 1,
+      }),
+      zIndex: 100
+    })
+
+    const markerLayer = new VectorLayer({
+      source: markerSource,
+      style: markerLayerStyle
+    })
+
+    const newMap = new Map({
+      target: 'map',
+      layers: [baseLayer, markerLayer],
+      view: new View({
+        center: centerCoordinate,
+        zoom: 16,
+        minZoom: 7,
+        maxZoom: 18,
+        projection : 'EPSG:4326'
+      }),
+      controls: []
+    });
+
+    newMap.on('click', async function (e) {
+      const address = await addressSearch(e.coordinate);
+      const addressText = address.response.result[address.response.result.length === 2 ? 1 : 0].text;
+      
+      markerFeature.getGeometry()?.setCoordinates(e.coordinate);
+
+      markerLayerStyle.setText(new Text({
+        text: addressText, 
+        scale: 1,
+      }));
+
+      const params = {
+        x: e.coordinate[0].toString(),
+        y: e.coordinate[1].toString()
+      };
+
+      const query = new URLSearchParams(params).toString()
+      await get(`${process.env.REACT_APP_BACKEND_URL}/search/${setting.searchType.value}?${query}`, {}, (data: BackendResponseData<UserLocateAndTendency[]>) => {});
+    });
+  }
 
   useEffect(() => {
-    (async() => {
-      let centerCoordinate = [126.97831737391309, 37.566619172927574];
-      let centerText = "시청";
-      let searchFail = false;
-
-      const searchTxt = searchParams.get("searchTxt");
-      if(searchTxt !== null && searchTxt !== "") {
-        const res = (await locateSearch(searchTxt)).response;
-        if(res.record.current > 0 && res.result?.items[0].address) {
-          const point = res.result.items[0].point;
-          centerCoordinate = [Number(point.x), Number(point.y)];
-          centerText = res.result.items[0].address.road;
-        } else {
-          searchFail = true;
-        }
-      }
-      
-      if(searchTxt === null || searchTxt === "" || searchFail){
-        centerCoordinate = [location.location.longitude, location.location.latitude];
-        const address = await addressSearch(centerCoordinate)
-        centerText = address.response.result[address.response.result.length === 2 ? 1 : 0].text;
-      }
-      
-      const markerSource = new VectorSource();
-
-      const markerFeature = new Feature({
-        geometry: new Point(centerCoordinate)
-      });
-
-      markerSource.addFeature(markerFeature);
-      
-      const markerLayerStyle = new Style({
-        image: new Icon({
-          opacity: 1,
-          scale: 0.1,
-          src: markerImage
-        }),
-        text: new Text({
-          text: centerText, 
-          scale: 1,
-        }),
-        zIndex: 100
-      })
-
-      const markerLayer = new VectorLayer({
-        source: markerSource,
-        style: markerLayerStyle
-      })
-
-      const newMap = new Map({
-        target: 'map',
-        layers: [baseLayer, markerLayer],
-        view: new View({
-          center: centerCoordinate,
-          zoom: 16,
-          minZoom: 7,
-          maxZoom: 18,
-          projection : 'EPSG:4326'
-        }),
-        controls: []
-      });
-
-      newMap.on('click', async function (e) {
-        const address = await addressSearch(e.coordinate);
-        const addressText = address.response.result[address.response.result.length === 2 ? 1 : 0].text;
-        
-        markerFeature.getGeometry()?.setCoordinates(e.coordinate);
-
-        markerLayerStyle.setText(new Text({
-          text: addressText, 
-          scale: 1,
-        }));
-
-        const params = {
-          x: e.coordinate[0].toString(),
-          y: e.coordinate[1].toString()
-        };
-
-        const query = new URLSearchParams(params).toString()
-        const users: UserLocateAndTendency[] = await fetch(`${process.env.REACT_APP_BACKEND_URL}/search/locate/near?${query}`).then(res => res.json());
-          fetch(`${process.env.REACT_APP_BACKEND_URL}/driver/message`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              message: "테스트임",
-              messageType: "search",
-              userIds: [user.id]
-            })
-          })
-      });
-
-      setMap(newMap);
-    })()
+    setCurrentElement(mapPage);
+    setMap();
   }, [])
-
-  
 
   return (
     <MapPageContainer>
-      <MapContainer id="map"></MapContainer>
+      {currentElement}
     </MapPageContainer>
   )
 }
