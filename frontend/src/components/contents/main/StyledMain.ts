@@ -19,14 +19,6 @@ export const SearchContainer = styled.div`
   height: 4vh;
 `;
 
-export const SearchForm = styled.form`
-  display: flex;
-  width: 80vw;
-  height: 4vh;
-  justify-content: center;
-  align-items: center;
-`;
-
 export const SearchInput = styled.input`
   width: 40vh;
   height: 3.2vh;

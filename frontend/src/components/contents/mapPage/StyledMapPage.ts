@@ -23,6 +23,24 @@ export const MapSearchInput = styled.input`
   
 `;
 
+export const MapSearchResultContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+export const MapSearchResultRow = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+export const MapSearchResultRowMainTitle = styled.h2`
+  margin: 0;
+`;
+
+export const MapSearchResultRowSubTitle = styled.h4`
+  margin: 0;
+`;
+
 export const MapContainer = styled.div`
   width: 100vw;
   height: 84vh;
