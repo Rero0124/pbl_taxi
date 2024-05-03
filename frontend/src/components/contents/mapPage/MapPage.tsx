@@ -113,8 +113,8 @@ const addressSearch = async (coordinate: Coordinate): Promise<AddressResponse> =
   return data;
 }
 
-const locateSearch = async (searchTxt: string, type: string): Promise<LocateResponse> => {
-  const getUrl = (type: string) => `https://api.vworld.kr/req/search?service=search&request=search&version=2.0&crs=EPSG:4326&size=1000&query=${searchTxt}&type=${type}&format=json&errorformat=json&key=${process.env.REACT_APP_VWORLD_KEY}${type === "ADDRESS" ? "&category=PARCEL" : ""}`
+const locateSearch = async (searchTxt: string, type: string, point?: {x: number; y: number}): Promise<LocateResponse> => {
+  const getUrl = (type: string) => `https://api.vworld.kr/req/search?service=search&request=search&version=2.0&crs=EPSG:4326&size=1000&query=${searchTxt}&type=${type}${point ? `&bbox=${point.x - 0.0005},${point.y - 0.0005},${point.x + 0.0005},${point.y + 0.0005}` : ""}&format=json&errorformat=json&key=${process.env.REACT_APP_VWORLD_KEY}${type === "ADDRESS" ? "&category=PARCEL" : ""}`
   
   const data: LocateResponse = await (await fetchJsonp(getUrl(type))).json();
   data.response.record = { current: Number(data.response.record.current), total: Number(data.response.record.total) };
@@ -138,178 +138,53 @@ const MapPage = () => {
 
   const [searchParams] = useSearchParams();
 
+  const [map, setMap] = useState<Map>();
+  const [markerFeature, setMarkerFeature] = useState<Feature<Point>>();
+  const [markerLayerStyle, setMarkerLayerStyle] = useState<Style>();
   const [currentPage, setCurrentPage] = useState<string>("map");
   const [startAddress, setStartAddress] = useState<AddressType>();
   const [endAddress, setEndAddress] = useState<AddressType>();
   const [searchTarget, setSearchTarget] = useState<string>("start");
   const [searchResult, setSearchResult] = useState<LocateResponseItem[]>([]);
   const [selectedSearchResultRow, setSelectedSearchResultRow] = useState<number>(-1);
-
+  
+  const mapContainerRef = useRef<HTMLDivElement>(null);
   const searchTxtRef = useRef<HTMLInputElement>(null);
 
-  const setMap = async () => {
-    let centerCoordinate = [126.97831737391309, 37.566619172927574];
-    let centerText = "시청";
-
-    if(selectedSearchResultRow > -1) {
-      centerText = searchResult[selectedSearchResultRow].title || searchResult[selectedSearchResultRow].address?.road || searchResult[selectedSearchResultRow].address?.parcel || "";
-      centerCoordinate = [searchResult[selectedSearchResultRow].point.x, searchResult[selectedSearchResultRow].point.y];
-
-      const addressData: AddressType = {
-        title: centerText,
-        address: searchResult[selectedSearchResultRow].address?.road || searchResult[selectedSearchResultRow].address?.parcel || "",
-        point: searchResult[selectedSearchResultRow].point
-      }
-
-      if(searchTarget === "start") {
-        setStartAddress(addressData);
-      } else if(searchTarget === "end") {
-        setEndAddress(addressData);
-      }
-    } else {
-      centerCoordinate = [location.location.longitude, location.location.latitude];
-      const address = await addressSearch(centerCoordinate)
-      centerText = address.response.result[address.response.result.length === 2 ? 1 : 0].text;
-    }
-    
-    const markerSource = new VectorSource();
-
-    const markerFeature = new Feature({
-      geometry: new Point(centerCoordinate)
-    });
-
-    markerSource.addFeature(markerFeature);
-    
-    const markerLayerStyle = new Style({
-      image: new Icon({
-        opacity: 1,
-        scale: 0.1,
-        src: markerImage
-      }),
-      text: new Text({
-        text: centerText, 
-        scale: 1,
-      }),
-      zIndex: 100
-    })
-
-    const markerLayer = new VectorLayer({
-      source: markerSource,
-      style: markerLayerStyle
-    })
-
-    const newMap = new Map({
-      target: 'map',
-      layers: [baseLayer, markerLayer],
-      view: new View({
-        center: centerCoordinate,
-        zoom: 16,
-        minZoom: 7,
-        maxZoom: 18,
-        projection : 'EPSG:4326'
-      }),
-      controls: []
-    });
-
-    newMap.on('click', async function (e) {
-      const address = await addressSearch(e.coordinate);
-      const addressText = address.response.result[address.response.result.length === 2 ? 1 : 0].text;
-      const locate = (await locateSearch(address.response.result[0].text, "PLACE")).response;
-
-      let selectedIdx = -1;
-
-      if(locate.result?.items) {
-        const administrativeIdx: number[] = [];
-        const hospitalIdx: number[] = [];
-        const subwayEnteranceIdx: number[] = [];
-        const subwayIdx: number[] = [];
-        const busStationIdx: number[] = [];
-        const buildingIdx: number[] = [];
-        const commonIdx: number[] = [];
-
-        locate.result.items.forEach((item, idx) => {
-          if(item.category) {
-            if(item.category.indexOf("중앙행정기관") > -1) administrativeIdx.push(idx);
-            if(item.category.indexOf("지하철역입구") > -1) subwayEnteranceIdx.push(idx);
-            if(item.category.indexOf("지하철") > -1) subwayIdx.push(idx);
-            if(item.category.indexOf("건물") > -1) buildingIdx.push(idx);
-            if(item.category.indexOf("병원") > -1 || item.category.indexOf("의원") > -1) hospitalIdx.push(idx);
-            if(item.category.indexOf("버스") > -1) busStationIdx.push(idx);
-            if(item.category.indexOf("기타") === -1) commonIdx.push(idx);
-          }
-        })
-
-        if(administrativeIdx.length > 0) {
-          selectedIdx = administrativeIdx[0];
-        } else if(subwayEnteranceIdx.length > 0) {
-          selectedIdx = subwayEnteranceIdx[0];
-        } else if(subwayIdx.length > 0) {
-          selectedIdx = subwayIdx[0];
-        } else if(buildingIdx.length > 0) {
-          selectedIdx = buildingIdx[0];
-        } else if(hospitalIdx.length > 0) {
-          selectedIdx = hospitalIdx[0];
-        } else if(busStationIdx.length > 0) {
-          selectedIdx = busStationIdx[0];
-        } else if(commonIdx.length > 0) {
-          selectedIdx = commonIdx[0];
+  const renderMap = () => {
+    if(map && markerFeature && markerLayerStyle) {
+      let centerCoordinate = [126.97831737391309, 37.566619172927574];
+      let centerText = "시청";
+  
+      if(selectedSearchResultRow > -1) {
+        centerText = searchResult[selectedSearchResultRow].title || searchResult[selectedSearchResultRow].address?.road || searchResult[selectedSearchResultRow].address?.parcel || "";
+        centerCoordinate = [searchResult[selectedSearchResultRow].point.x, searchResult[selectedSearchResultRow].point.y];
+  
+        const addressData: AddressType = {
+          title: centerText,
+          address: searchResult[selectedSearchResultRow].address?.road || searchResult[selectedSearchResultRow].address?.parcel || "",
+          point: searchResult[selectedSearchResultRow].point
+        }
+  
+        if(searchTarget === "start") {
+          setStartAddress(addressData);
+        } else if(searchTarget === "end") {
+          setEndAddress(addressData);
         }
 
-        if(selectedIdx !== -1) {
-          markerLayerStyle.setText(new Text({
-            text: locate.result.items[selectedIdx].title, 
-            scale: 1,
-          }));
-  
-          const searchedData: AddressType = {
-            title: locate.result.items[selectedIdx].title || locate.result.items[selectedIdx].address?.road || locate.result.items[selectedIdx].address?.parcel || "",
-            address: locate.result.items[selectedIdx].address?.road || locate.result.items[selectedIdx].address?.parcel || "",
-            point: {
-              x: e.coordinate[0],
-              y: e.coordinate[1]
-            }
-          }
-  
-          if(searchTarget === "start") {
-            setStartAddress(searchedData);
-          } else if(searchTarget === "end") {
-            setEndAddress(searchedData);
-          }
-        }
-      } 
-      
-      if(selectedIdx === -1){
+        markerFeature.getGeometry()?.setCoordinates(centerCoordinate);
         markerLayerStyle.setText(new Text({
-          text: addressText, 
+          text: centerText,
           scale: 1,
         }));
 
-        const searchedData: AddressType = {
-          title: addressText,
-          address: addressText,
-          point: {
-            x: e.coordinate[0],
-            y: e.coordinate[1]
-          }
-        }
-
-        if(searchTarget === "start") {
-          setStartAddress(searchedData);
-        } else if(searchTarget === "end") {
-          setEndAddress(searchedData);
-        }
+        map.getView().setCenter(centerCoordinate);
+        
+        map.setTarget(mapContainerRef.current ?? undefined);
       }
-      
-      markerFeature.getGeometry()?.setCoordinates(e.coordinate);
 
-      const params = {
-        x: e.coordinate[0].toString(),
-        y: e.coordinate[1].toString()
-      };
-
-      const query = new URLSearchParams(params).toString()
-      await get(`${process.env.REACT_APP_BACKEND_URL}/search/${setting.searchType.value}?${query}`, {}, (data: BackendResponseData<UserLocateAndTendency[]>) => {});
-    });
+      map.setTarget("map");
+    }
   }
 
   const selectRow = (idx: number) => {
@@ -329,22 +204,177 @@ const MapPage = () => {
   }
 
   useEffect(() => {
-    const target = searchParams.get("target"); 
-    if(target) {
-      if(target === "map") {
-        setCurrentPage("map");
-        setMap();
+    (async () => {
+      let centerCoordinate = [126.97831737391309, 37.566619172927574];
+      let centerText = "시청";
+
+      centerCoordinate = [location.location.longitude, location.location.latitude];
+      const address = await addressSearch(centerCoordinate)
+      centerText = address.response.result[address.response.result.length === 2 ? 1 : 0].text;
+      
+      const newMarkerSource = new VectorSource();
+  
+      const newMarkerFeature = new Feature({
+        geometry: new Point(centerCoordinate)
+      });
+  
+      newMarkerSource.addFeature(newMarkerFeature);
+      
+      const newMarkerLayerStyle = new Style({
+        image: new Icon({
+          opacity: 1,
+          scale: 0.1,
+          src: markerImage
+        }),
+        text: new Text({
+          text: centerText, 
+          scale: 1,
+        }),
+        zIndex: 100
+      })
+  
+      const markerLayer = new VectorLayer({
+        source: newMarkerSource,
+        style: newMarkerLayerStyle
+      })
+  
+      const newMap = new Map({
+        layers: [baseLayer, markerLayer],
+        view: new View({
+          center: centerCoordinate,
+          zoom: 16,
+          minZoom: 7,
+          maxZoom: 18,
+          projection : 'EPSG:4326'
+        }),
+        controls: []
+      });
+  
+      newMap.on('click', async function (e) {
+        const address = await addressSearch(e.coordinate);
+        const addressText = address.response.result[address.response.result.length === 2 ? 1 : 0].text;
+        const locate = (await locateSearch(address.response.result[0].text, "PLACE", {
+          x: e.coordinate[0],
+          y: e.coordinate[1]
+        })).response;
+  
+        let selectedIdx = -1;
+  
+        if(locate.result?.items) {
+          const administrativeIdx: number[] = [];
+          const hospitalIdx: number[] = [];
+          const subwayEnteranceIdx: number[] = [];
+          const subwayIdx: number[] = [];
+          const busStationIdx: number[] = [];
+          const buildingIdx: number[] = [];
+          const commonIdx: number[] = [];
+  
+          locate.result.items.forEach((item, idx) => {
+            if(item.category) {
+              if(item.category.indexOf("중앙행정기관") > -1) administrativeIdx.push(idx);
+              if(item.category.indexOf("지하철역입구") > -1) subwayEnteranceIdx.push(idx);
+              if(item.category.indexOf("지하철") > -1) subwayIdx.push(idx);
+              if(item.category.indexOf("건물") > -1) buildingIdx.push(idx);
+              if(item.category.indexOf("병원") > -1 || item.category.indexOf("의원") > -1) hospitalIdx.push(idx);
+              if(item.category.indexOf("버스") > -1) busStationIdx.push(idx);
+              if(item.category.indexOf("기타") === -1 && item.category.indexOf("도로시설") === -1) commonIdx.push(idx);
+            }
+          })
+  
+          if(administrativeIdx.length > 0) {
+            selectedIdx = administrativeIdx[0];
+          } else if(subwayEnteranceIdx.length > 0) {
+            selectedIdx = subwayEnteranceIdx[0];
+          } else if(subwayIdx.length > 0) {
+            selectedIdx = subwayIdx[0];
+          } else if(buildingIdx.length > 0) {
+            selectedIdx = buildingIdx[0];
+          } else if(hospitalIdx.length > 0) {
+            selectedIdx = hospitalIdx[0];
+          } else if(busStationIdx.length > 0) {
+            selectedIdx = busStationIdx[0];
+          } else if(commonIdx.length > 0) {
+            selectedIdx = commonIdx[0];
+          }
+  
+          if(selectedIdx !== -1) {
+            newMarkerLayerStyle.setText(new Text({
+              text: locate.result.items[selectedIdx].title, 
+              scale: 1,
+            }));
+    
+            const searchedData: AddressType = {
+              title: locate.result.items[selectedIdx].title || locate.result.items[selectedIdx].address?.road || locate.result.items[selectedIdx].address?.parcel || "",
+              address: locate.result.items[selectedIdx].address?.road || locate.result.items[selectedIdx].address?.parcel || "",
+              point: {
+                x: e.coordinate[0],
+                y: e.coordinate[1]
+              }
+            }
+    
+            if(searchTarget === "start") {
+              setStartAddress(searchedData);
+            } else if(searchTarget === "end") {
+              setEndAddress(searchedData);
+            }
+          }
+        } 
+        
+        if(selectedIdx === -1){
+          newMarkerLayerStyle.setText(new Text({
+            text: addressText, 
+            scale: 1,
+          }));
+  
+          const searchedData: AddressType = {
+            title: addressText,
+            address: addressText,
+            point: {
+              x: e.coordinate[0],
+              y: e.coordinate[1]
+            }
+          }
+  
+          if(searchTarget === "start") {
+            setStartAddress(searchedData);
+          } else if(searchTarget === "end") {
+            setEndAddress(searchedData);
+          }
+        }
+        
+        newMarkerFeature.getGeometry()?.setCoordinates(e.coordinate);
+  
+        const params = {
+          x: e.coordinate[0].toString(),
+          y: e.coordinate[1].toString()
+        };
+  
+        const query = new URLSearchParams(params).toString()
+        await get(`${process.env.REACT_APP_BACKEND_URL}/search/${setting.searchType.value}?${query}`, {}, (data: BackendResponseData<UserLocateAndTendency[]>) => {});
+      });
+
+      setMap(newMap);
+      setMarkerFeature(newMarkerFeature);
+      setMarkerLayerStyle(newMarkerLayerStyle);
+
+      newMap.setTarget(mapContainerRef.current ?? undefined);
+
+      const target = searchParams.get("target");
+      if(target) {
+        if(target === "map") {
+          setCurrentPage("map");
+        } else {
+          setCurrentPage("search")
+        }
       } else {
         setCurrentPage("search")
       }
-    } else {
-      setCurrentPage("search")
-    }
+    })()
   }, []);
 
   useEffect(() => {
     if(currentPage === "map") {
-      setMap();
+      renderMap();
     } else if(currentPage === "search") {
       setSearchResult([]);
       setSelectedSearchResultRow(-1);
@@ -363,7 +393,7 @@ const MapPage = () => {
               <span onClick={() => {moveSearch("end")}} >{endAddress ? endAddress.title : "목적지를 선택해주세요"}</span>
             </p>
           </MapSearchContainer>
-          <MapContainer id="map"></MapContainer>
+          <MapContainer id="map" ref={mapContainerRef}></MapContainer>
         </>
       ) : (
         <>
