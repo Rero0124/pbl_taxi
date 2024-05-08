@@ -53,7 +53,7 @@ router.post('/', async (req: PostRequest<UserCreateBody>, res: ExpressResponse) 
 /**
  * 사용자 상세
  */
-router.get('/:id', async (req: GetRequest<UserParams>, res: ExpressResponse) => {
+router.get('/user/:id', async (req: GetRequest<UserParams>, res: ExpressResponse) => {
   try {
     const userInfo: UserInfo = await prisma.user.findUniqueOrThrow({
       include: {

@@ -4,16 +4,8 @@ import express, { Router } from "express";
 const router: Router = express.Router();
 const prisma = new PrismaClient();
 
-interface SearchResult {
-  userId: string,
-  geom: string,
-  distance: number,
-  inward: boolean,
-  quickly: boolean,
-  song: boolean,
-  point: number,
-  songName: string | null
-}
+const calledUsers = new Map<string, {customerRes: ExpressResponse}>();
+let matchedUsers: {customerId: string, driverId: string, driverRes: ExpressResponse}[] = [];
 
 const query = (x: string, y: string, inward: boolean, quickly: boolean, song: boolean) => `
 SELECT 
@@ -25,6 +17,7 @@ SELECT
   "inward",
   "quickly",
   "song",
+  "score",
   "point"
 FROM 
   (
@@ -98,5 +91,57 @@ router.get('/speed', async (req: GetRequest<{}, LocateQuery>, res: ExpressRespon
     res.status(500).send({ message: "Internal Server Error" })
   }
 })
+
+router.post('/match/driver', async (req: PostRequest<{driverId: string}>, res: ExpressResponse) => {
+  try{
+    if(req.session.user !== undefined) {
+      calledUsers.set(req.session.user.id, { customerRes: res });
+      res.redirect(`/message/driver/${req.body.driverId}`)
+    } else {
+      res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
+    }
+  } catch {
+    res.status(500).send({ message: "Internal Server Error" })
+  }
+})
+
+router.delete('/match/driver', async (req: DeleteRequest, res: ExpressResponse) => {
+  try{
+    if(req.session.user !== undefined) {
+      calledUsers.delete(req.session.user.id);
+    } else {
+      res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
+    }
+  } catch {
+    res.status(500).send({ message: "Internal Server Error" })
+  }
+})
+
+router.post('/match/customer', async (req: PostRequest<{customerId: string}>, res: ExpressResponse) => {
+  try{
+    if(req.session.user !== undefined) {
+      matchedUsers.push({customerId: req.body.customerId, driverId: req.session.user.id, driverRes: res});
+    } else {
+      res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
+    }
+  } catch {
+    res.status(500).send({ message: "Internal Server Error" })
+  }
+})
+
+setInterval(async () => {
+  let idx = 0;
+  while(matchedUsers.length > idx) {
+    const matchedUser = matchedUsers[idx];
+    const calledUser = calledUsers.get(matchedUser.customerId);
+    if(calledUser) {
+      matchedUsers = matchedUsers.slice(idx, 1);
+      calledUser.customerRes.status(200).json({ message: "success", data: matchedUser.driverId });
+      matchedUser.driverRes.status(200).json({ message: "success", data: matchedUser.customerId });
+    } else {
+      idx++;
+    }
+  }
+}, 700)
 
 export default router;
