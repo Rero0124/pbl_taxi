@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import './App.css';
-import { BrowserView, MobileView, isIE, isMobile } from 'react-device-detect';
+import { BrowserView, MobileView, isChrome, isEdge, isIE, isMobile } from 'react-device-detect';
 import Header from './components/layout/header/Header';
 import ErrorPage from './components/pages/error/ErrorPage';
 import Navigation from './components/layout/navigation/Navigation';
@@ -11,6 +11,7 @@ import Section from './components/layout/section/Section';
 import { User, userSet } from './store/userReducer';
 import { GeoLocationPosition, locationDeny, locationSet, schdulerSet, schdulerUnSet } from './store/locationReducer';
 import { del, put } from './util/ajax';
+import { PopupParam, popupSet, popupShow } from './store/popupReducer';
 
 function App() {
   const dispatch = useDispatch();
@@ -52,8 +53,23 @@ function App() {
 
   useEffect(() => {
     if(serverEvent) {
-      serverEvent.addEventListener('message', (e) => {
-        console.log(e.data);
+      serverEvent.addEventListener('message', (e: MessageEvent<string>) => {
+        const eventType = e.data.split("@")[0];
+        const data = e.data.split("@")[1];
+        const popupSetting: PopupParam = {
+          title: "",
+          type: eventType,
+          content: data,
+        };
+        if(eventType === "called") {
+          popupSetting.title = "택시 호출";
+          dispatch(popupSet(popupSetting));
+          dispatch(popupShow());
+        } else if(eventType === "matched") {
+          popupSetting.title = "매칭됨"
+          dispatch(popupSet(popupSetting));
+          dispatch(popupShow());
+        }
         return;
       })
     }
@@ -69,7 +85,7 @@ function App() {
       })
     }
 
-    setAppType("driver");
+    if(isEdge) setAppType("driver");
 
     if(location.isEnable) {
       updateGeoLocation();

@@ -2,22 +2,25 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface Popup {
   display: number;
+  type: string;
   title: string;
   content: string;
 }
 
 export interface PopupParam {
   title: string;
+  type: string;
   content: string;
 }
 
 const initPopup: Popup = {
   display: 0,
+  type: "",
   title: "",
   content: ""
 }
 
-const settingSlice = createSlice({
+const popupSlice = createSlice({
   name: 'popupSlice',
   initialState: initPopup,
   reducers: {
@@ -33,5 +36,5 @@ const settingSlice = createSlice({
   }
 })
 
-export const { popupSet, popupShow, popupClose } = settingSlice.actions;
-export default settingSlice.reducer;
+export const { popupSet, popupShow, popupClose } = popupSlice.actions;
+export default popupSlice.reducer;

@@ -1,11 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import express, { Router } from "express";
+import { callSendDriver, matchSend } from "./message";
 
 const router: Router = express.Router();
 const prisma = new PrismaClient();
 
 const calledUsers = new Map<string, {customerRes: ExpressResponse}>();
-let matchedUsers: {customerId: string, driverId: string, driverRes: ExpressResponse}[] = [];
 
 const query = (x: string, y: string, inward: boolean, quickly: boolean, song: boolean) => `
 SELECT 
@@ -17,6 +17,7 @@ SELECT
   "inward",
   "quickly",
   "song",
+  "songName",
   "score",
   "point"
 FROM 
@@ -31,7 +32,7 @@ FROM
       coalesce(ten."quickly", false) AS "quickly",
       coalesce(ten."song", false) AS "song",
       ten."songName",
-      CASE WHEN rate."score" is NULL THEN 4 ELSE rate."score" END AS "score",
+      CASE WHEN rate."score" is NULL THEN 0 ELSE rate."score" END AS "score",
       (CASE WHEN ten."inward" = ${inward} THEN 2 WHEN ten."inward" IS NULL THEN 1 ELSE 0 END) 
       + (CASE WHEN ten."quickly" = ${quickly} THEN 2 WHEN ten."quickly" IS NULL THEN 1 ELSE 0 END) 
       + (CASE WHEN ten."song" = ${song} THEN 2 WHEN ten."song" IS NULL THEN 1 ELSE 0 END) 
@@ -96,7 +97,8 @@ router.post('/match/driver', async (req: PostRequest<{driverId: string}>, res: E
   try{
     if(req.session.user !== undefined) {
       calledUsers.set(req.session.user.id, { customerRes: res });
-      res.redirect(`/message/driver/${req.body.driverId}`)
+      callSendDriver(req.session.user.id, req.body.driverId);
+      res.status(200).json({ message: "success" });
     } else {
       res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
     }
@@ -109,6 +111,7 @@ router.delete('/match/driver', async (req: DeleteRequest, res: ExpressResponse) 
   try{
     if(req.session.user !== undefined) {
       calledUsers.delete(req.session.user.id);
+      res.status(200).json({ message: "success" });
     } else {
       res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
     }
@@ -120,7 +123,13 @@ router.delete('/match/driver', async (req: DeleteRequest, res: ExpressResponse) 
 router.post('/match/customer', async (req: PostRequest<{customerId: string}>, res: ExpressResponse) => {
   try{
     if(req.session.user !== undefined) {
-      matchedUsers.push({customerId: req.body.customerId, driverId: req.session.user.id, driverRes: res});
+      if(calledUsers.get(req.body.customerId)) {
+        calledUsers.delete(req.body.customerId);
+        matchSend(req.body.customerId, req.session.user.id);
+        res.status(200).json({ message: "success" });
+      } else {
+        res.status(200).json({ message: "fail" });
+      }
     } else {
       res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
     }
@@ -128,20 +137,5 @@ router.post('/match/customer', async (req: PostRequest<{customerId: string}>, re
     res.status(500).send({ message: "Internal Server Error" })
   }
 })
-
-setInterval(async () => {
-  let idx = 0;
-  while(matchedUsers.length > idx) {
-    const matchedUser = matchedUsers[idx];
-    const calledUser = calledUsers.get(matchedUser.customerId);
-    if(calledUser) {
-      matchedUsers = matchedUsers.slice(idx, 1);
-      calledUser.customerRes.status(200).json({ message: "success", data: matchedUser.driverId });
-      matchedUser.driverRes.status(200).json({ message: "success", data: matchedUser.customerId });
-    } else {
-      idx++;
-    }
-  }
-}, 700)
 
 export default router;

@@ -5,7 +5,8 @@ import express from 'express';
 import expressSession from 'express-session';
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 import { PrismaClient } from '@prisma/client';
-import https, { ServerOptions } from 'https'
+// import https, { ServerOptions } from 'https'; // ssl 미사용시
+import spdy, { ServerOptions } from 'spdy'; //ssl 사용시
 import cors from 'cors';
 import user from './router/user';
 import auth from './router/auth';
@@ -57,4 +58,5 @@ server.use('/auth', auth);
 server.use('/search', search);
 server.use('/message', driver);
 
-https.createServer(sslOption, server).listen(port, () => { console.log('서버 시작') })
+// https.createServer(sslOption, server).listen(port, () => { console.log('서버 시작') }); // ssl 미사용시
+spdy.createServer(sslOption, server).listen(port, () => { console.log('서버 시작') }); // ssl 사용시

@@ -15,7 +15,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import { useSearchParams } from "react-router-dom";
 import { MapContainer, MapPageContainer, MapSearchContainer, MapSearchForm, MapSearchInput, MapSearchResultContainer, MapSearchResultRow, MapSearchResultRowMainTitle, MapSearchResultRowSubTitle } from "./StyledMapPage";
-import { get } from "../../../util/ajax";
+import { get, post } from "../../../util/ajax";
 
 interface UserLocateAndTendency {
   userId: string,
@@ -96,6 +96,18 @@ interface AddressType {
   }
 }
 
+interface SearchDriverResult {
+  userId: string,
+  geom: string,
+  distance: number,
+  inward: boolean,
+  quickly: boolean,
+  song: boolean,
+  point: number,
+  score: number,
+  songName: string | null
+}
+
 const baseLayer = new TileLayer({
   visible: true,
   source: new XYZ({
@@ -114,7 +126,7 @@ const addressSearch = async (coordinate: Coordinate): Promise<AddressResponse> =
 }
 
 const locateSearch = async (searchTxt: string, type: string, point?: {x: number; y: number}): Promise<LocateResponse> => {
-  const getUrl = (type: string) => `https://api.vworld.kr/req/search?service=search&request=search&version=2.0&crs=EPSG:4326&size=1000&query=${searchTxt}&type=${type}${point ? `&bbox=${point.x - 0.0005},${point.y - 0.0005},${point.x + 0.0005},${point.y + 0.0005}` : ""}&format=json&errorformat=json&key=${process.env.REACT_APP_VWORLD_KEY}${type === "ADDRESS" ? "&category=PARCEL" : ""}`
+  const getUrl = (type: string) => `https://api.vworld.kr/req/search?service=search&request=search&version=2.0&crs=EPSG:4326&size=1000&query=${searchTxt}&type=${type}${point ? `&bbox=${point.x - 0.00015},${point.y - 0.00015},${point.x + 0.00015},${point.y + 0.00015}` : ""}&format=json&errorformat=json&key=${process.env.REACT_APP_VWORLD_KEY}${type === "ADDRESS" ? "&category=PARCEL" : ""}`
   
   const data: LocateResponse = await (await fetchJsonp(getUrl(type))).json();
   data.response.record = { current: Number(data.response.record.current), total: Number(data.response.record.total) };
@@ -146,7 +158,10 @@ const MapPage = () => {
   const [endAddress, setEndAddress] = useState<AddressType>();
   const [searchTarget, setSearchTarget] = useState<string>("start");
   const [searchResult, setSearchResult] = useState<LocateResponseItem[]>([]);
+  const [matchedDriver, setMatchedDriver] = useState<SearchDriverResult>();
+  const [searchDriverResult, setSearchDriverResult] = useState<SearchDriverResult[]>([]);
   const [selectedSearchResultRow, setSelectedSearchResultRow] = useState<number>(-1);
+  const [selectedSearchDriverResultRow, setSelectedSearchDriverResultRow] = useState<number>(-1);
   
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const searchTxtRef = useRef<HTMLInputElement>(null);
@@ -201,6 +216,26 @@ const MapPage = () => {
     e.preventDefault();
     const res = (await locateSearch(e.currentTarget.searchTxt.value, "PLACE")).response;
     if(res.record.current > 0 && res.result?.items !== undefined) { setSearchResult(res.result?.items); }
+  }
+
+  const searchDriver = async () => {
+    if(startAddress) {
+      const params = {
+        x: startAddress.point.x.toString(),
+        y: startAddress.point.y.toString()
+      };
+  
+      const query = new URLSearchParams(params).toString()
+  
+      get(`${process.env.REACT_APP_BACKEND_URL}/search/tendency?${query}`, {}, (data: BackendResponseData<SearchDriverResult[]>) => {
+        setSearchDriverResult(data.data);
+      })
+    }
+  }
+
+  const selectDriverRow = (idx: number) => {
+    setSelectedSearchDriverResultRow(idx);
+    post(`${process.env.REACT_APP_BACKEND_URL}/search/match/driver`, { body: JSON.stringify({driverId: searchDriverResult[idx].userId}) }, () => {});
   }
 
   useEffect(() => {
@@ -379,42 +414,71 @@ const MapPage = () => {
       setSearchResult([]);
       setSelectedSearchResultRow(-1);
       if(searchTxtRef.current !== null) searchTxtRef.current.focus();
+    } else if (currentPage === "driver") {
+      setSearchDriverResult([]);
+      setSelectedSearchDriverResultRow(-1);
     }
   }, [currentPage]);
 
+  useEffect(() => {
+    if(startAddress && endAddress) {
+      setCurrentPage("driver");
+      if(setting.searchType.value === "speed") {
+        setMatchedDriver(undefined);
+      } else {
+        searchDriver();
+      }
+    }
+  }, [startAddress, endAddress])
+
   return (
     <MapPageContainer>
-      {currentPage === "map" ? (
-        <>
-          <MapSearchContainer>
-            <p>
-              <span onClick={() => {moveSearch("start")}}>{startAddress ? startAddress.title : "목적지를 선택해주세요"}</span>
-              <span>{" > "}</span>
-              <span onClick={() => {moveSearch("end")}} >{endAddress ? endAddress.title : "목적지를 선택해주세요"}</span>
-            </p>
-          </MapSearchContainer>
-          <MapContainer id="map" ref={mapContainerRef}></MapContainer>
-        </>
+      {currentPage === "driver" ? (
+        <MapSearchResultContainer>
+          {searchDriverResult.length > 0 ? (
+            searchDriverResult.map((item, idx) => {
+              return <MapSearchResultRow key={idx} onClick={() => { selectDriverRow(idx) }}>
+                <MapSearchResultRowMainTitle>{item.userId} / 매칭점수: {item.point}</MapSearchResultRowMainTitle>
+                <MapSearchResultRowSubTitle>별점: {item.score} / {item.inward ? "내" : "외"}향적 / {item.inward ? "빠르게" : "안전하게"} / 노래{item.song ? "들음" + (item.songName ? "예시) " + item.song : "") : "안들음" }</MapSearchResultRowSubTitle>
+              </MapSearchResultRow>
+            })
+          ) : (
+            <MapSearchResultRow key={0}>검색된 결과가 없습니다.</MapSearchResultRow>
+          )}
+        </MapSearchResultContainer>
       ) : (
-        <>
-          <MapSearchForm onSubmit={searchAddress}>
-            <SearchTxtInput ref={searchTxtRef} name="searchTxt"/>
-            <MapSearchResultContainer>
-              {searchResult.length > 0 ? (
-                searchResult.map((item, idx) => {
-                  const locateTitle = item.title;
-                  const locateAddress = item.address?.road || item.address?.parcel;
-                  return <MapSearchResultRow key={idx} onClick={() => { selectRow(idx) }}>
-                    <MapSearchResultRowMainTitle>{locateTitle || locateAddress}</MapSearchResultRowMainTitle>
-                    { locateTitle ? (<MapSearchResultRowSubTitle>{locateAddress}</MapSearchResultRowSubTitle>) : (<></>) }
-                  </MapSearchResultRow>
-                })
-              ) : (
-                <MapSearchResultRow key={0}>검색된 결과가 없습니다.</MapSearchResultRow>
-              )}
-            </MapSearchResultContainer>
-          </MapSearchForm>
-        </>
+        currentPage === "map" ? (
+          <>
+            <MapSearchContainer>
+              <p>
+                <span onClick={() => {moveSearch("start")}}>{startAddress ? startAddress.title : "목적지를 선택해주세요"}</span>
+                <span>{" > "}</span>
+                <span onClick={() => {moveSearch("end")}} >{endAddress ? endAddress.title : "목적지를 선택해주세요"}</span>
+              </p>
+            </MapSearchContainer>
+            <MapContainer id="map" ref={mapContainerRef}></MapContainer>
+          </>
+        ) : (
+          <>
+            <MapSearchForm onSubmit={searchAddress}>
+              <SearchTxtInput ref={searchTxtRef} name="searchTxt"/>
+              <MapSearchResultContainer>
+                {searchResult.length > 0 ? (
+                  searchResult.map((item, idx) => {
+                    const locateTitle = item.title;
+                    const locateAddress = item.address?.road || item.address?.parcel;
+                    return <MapSearchResultRow key={idx} onClick={() => { selectRow(idx) }}>
+                      <MapSearchResultRowMainTitle>{locateTitle || locateAddress}</MapSearchResultRowMainTitle>
+                      { locateTitle ? (<MapSearchResultRowSubTitle>{locateAddress}</MapSearchResultRowSubTitle>) : (<></>) }
+                    </MapSearchResultRow>
+                  })
+                ) : (
+                  <MapSearchResultRow key={0}>검색된 결과가 없습니다.</MapSearchResultRow>
+                )}
+              </MapSearchResultContainer>
+            </MapSearchForm>
+          </>
+        )
       )}
     </MapPageContainer>
   )

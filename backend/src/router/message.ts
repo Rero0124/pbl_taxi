@@ -25,7 +25,7 @@ router.get('/:appType', (req: GetRequest<{appType: string}>, res: ExpressRespons
     allUsers.set(req.session.user.id, res);
     if(req.params.appType === "driver") {
       drivers.set(req.session.user.id, res);
-    }
+    } 
   } else {
     res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
   }
@@ -41,12 +41,20 @@ router.post('/notice', (req: PostRequest<SendMessageBody>, res: ExpressResponse)
   }
 })
 
-router.post('/driver/:driverId', async (req: PostRequest<{}, {driverId: string}>, res: ExpressResponse) => {
-  if(req.session.user !== undefined) {
-    drivers.get(req.session.user.id)?.write(`data: called@${req.params.driverId} \n\n`);
-  } else {
-    res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
+export const callSendDriver = async (customerId: string, driverId: string) => {
+  const driverResponse = drivers.get(driverId);
+  if(driverResponse) {
+    driverResponse.write(`data: called@${customerId}\n\n`);
   }
-})
+}
+
+export const matchSend = async (customerId: string, driverId: string) => {
+  const customerResponse = allUsers.get(customerId);
+  const driverResponse = allUsers.get(driverId);
+  if(customerResponse && driverResponse) {
+    customerResponse.write(`data: matched@${driverId}\n\n`);
+    driverResponse.write(`data: matched@${customerId}\n\n`);
+  }
+}
 
 export default router;
