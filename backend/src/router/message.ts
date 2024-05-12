@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import express, { Router } from "express";
+import { SessionUser } from "../types/session";
 
 const router: Router = express.Router();
 
@@ -41,19 +42,45 @@ router.post('/notice', (req: PostRequest<SendMessageBody>, res: ExpressResponse)
   }
 })
 
-export const callSendDriver = async (customerId: string, driverId: string) => {
+export const unsetResponse = async (userId: string) => {
+  allUsers.delete(userId);
+  drivers.delete(userId);
+}
+
+export const callSendDriver = async (customer: SessionUser, driverId: string) => {
   const driverResponse = drivers.get(driverId);
   if(driverResponse) {
-    driverResponse.write(`data: called@${customerId}\n\n`);
+    const eventData = {
+      event: "called",
+      data: {
+        customer: customer
+      }
+    }
+
+    driverResponse.write(`data: ${JSON.stringify(eventData)}\n\n`);
   }
 }
 
-export const matchSend = async (customerId: string, driverId: string) => {
-  const customerResponse = allUsers.get(customerId);
-  const driverResponse = allUsers.get(driverId);
+export const matchSend = async (customer: SessionUser, driver: SessionUser) => {
+  const customerResponse = allUsers.get(customer.id);
+  const driverResponse = allUsers.get(driver.id);
   if(customerResponse && driverResponse) {
-    customerResponse.write(`data: matched@${driverId}\n\n`);
-    driverResponse.write(`data: matched@${customerId}\n\n`);
+    const customerEventData = {
+      event: "matchedDriver",
+      data: {
+        driver: driver
+      }
+    }
+
+    const driverEventData = {
+      event: "matchedCustomer",
+      data: {
+        customer: customer
+      }
+    }
+
+    customerResponse.write(`data: ${JSON.stringify(customerEventData)}\n\n`);
+    driverResponse.write(`data: ${JSON.stringify(driverEventData)}\n\n`);
   }
 }
 

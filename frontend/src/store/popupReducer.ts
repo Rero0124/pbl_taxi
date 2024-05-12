@@ -3,21 +3,18 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 export interface Popup {
   display: number;
   type: string;
-  title: string;
-  content: string;
+  data: any;
 }
 
 export interface PopupParam {
-  title: string;
   type: string;
-  content: string;
+  data: any;
 }
 
 const initPopup: Popup = {
   display: 0,
   type: "",
-  title: "",
-  content: ""
+  data: ""
 }
 
 const popupSlice = createSlice({

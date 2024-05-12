@@ -50,7 +50,7 @@ export const PopupContent = styled.p`
 export const PopupBottomButtonContainer = styled.div`
   position: absolute;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   top: 80vh;
   left: 0;
   width: 100vw;
@@ -58,5 +58,5 @@ export const PopupBottomButtonContainer = styled.div`
 `;
 
 export const PopupButton = styled.div`
-
+  width: 50vw;
 `;

@@ -1,5 +1,6 @@
 import express, { Router } from "express";
 import { PrismaClient, User, UserTendency } from "@prisma/client";
+import { sessionStore } from "../server";
 
 interface UserInfo extends User {
   tendency: UserTendency | null
@@ -16,10 +17,12 @@ const defaultTendency: UserTendency = {
   songName: null
 }
 
+const sessionList = new Map<string, string>();
+
 /**
  * 세션 검색
  */
-router.get('/', async (req: GetRequest<SessionIdParam>, res: ExpressResponse) => {
+router.get('/', async (req: GetRequest, res: ExpressResponse) => {
   try {
     if(req.ip !== undefined) {
       if(req.session.user !== undefined) {
@@ -66,15 +69,7 @@ router.post('/', async (req: PostRequest<SessionLoginBody>, res: ExpressResponse
   try {
     if(req.ip !== undefined) {
       const ip = req.ip === '::1' ? '127.0.0.1' : req.ip;
-
-      const loginHistory = await prisma.userLoginHistory.create({
-        data: {
-          userId: req.body.id,
-          ip: ip,
-          success: false
-        }
-      })
-
+      
       const user = await prisma.user.findUnique({
         include: {
           tendency: true
@@ -86,8 +81,16 @@ router.post('/', async (req: PostRequest<SessionLoginBody>, res: ExpressResponse
       });
 
       if(user !== null) {
+        const loginHistory = await prisma.userLoginHistory.create({
+          data: {
+            userId: req.body.id,
+            ip: ip,
+            success: false
+          }
+        })
+        
         if(user.tendency === null) user.tendency = defaultTendency;
-
+        
         await prisma.userLoginHistory.update({
           data: {
             success: true
@@ -96,7 +99,11 @@ router.post('/', async (req: PostRequest<SessionLoginBody>, res: ExpressResponse
             id: loginHistory.id
           }
         })
-        
+
+        sessionStore.destroy(sessionList.get(user.id) || "");
+
+        sessionList.set(user.id, req.session.id)
+
         req.session.user = {
           id: user.id,
           name: user.name,
@@ -110,6 +117,13 @@ router.post('/', async (req: PostRequest<SessionLoginBody>, res: ExpressResponse
 
         res.status(200).json({ message: "success", data: req.session.user });
       } else {
+        await prisma.userLoginHistory.create({
+          data: {
+            ip: ip,
+            success: false
+          }
+        })
+
         res.status(202).json({ message: "아이디/비밀번호를 다시 입력해주세요." });
       }
     } else {

@@ -54,19 +54,17 @@ function App() {
   useEffect(() => {
     if(serverEvent) {
       serverEvent.addEventListener('message', (e: MessageEvent<string>) => {
-        const eventType = e.data.split("@")[0];
-        const data = e.data.split("@")[1];
+        const event: {event: string, data: any} = JSON.parse(e.data);
+        const eventType = event.event;
+        const data = event.data;
         const popupSetting: PopupParam = {
-          title: "",
           type: eventType,
-          content: data,
+          data: data,
         };
         if(eventType === "called") {
-          popupSetting.title = "택시 호출";
           dispatch(popupSet(popupSetting));
           dispatch(popupShow());
-        } else if(eventType === "matched") {
-          popupSetting.title = "매칭됨"
+        } else if(eventType.indexOf("matched") > -1) {
           dispatch(popupSet(popupSetting));
           dispatch(popupShow());
         }
@@ -98,26 +96,16 @@ function App() {
 
   return (
     <div className="App">
-      <MobileView>
+      { isIE ? ( 
+        <ErrorPage contentType="IE 브라우저"/> 
+      ) : (
         <>
           <Header />
           <Section />
           <Navigation />
           <Footer />
         </>
-      </MobileView>
-      <BrowserView>
-        { isIE ? ( 
-          <ErrorPage contentType="IE 브라우저"/> 
-        ) : (
-          <>
-            <Header />
-            <Section />
-            <Navigation />
-            <Footer />
-          </>
-        )}
-      </BrowserView>
+      )}
     </div>
   );
 }

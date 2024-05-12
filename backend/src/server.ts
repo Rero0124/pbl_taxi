@@ -31,6 +31,12 @@ const sslOption: ServerOptions = {
   minVersion: "TLSv1.2"
 }
 
+export const sessionStore = new PrismaSessionStore(
+  new PrismaClient(), {
+    checkPeriod: 2 * 60 * 1000,
+  }
+)
+
 server.use(cors({
   origin: process.env.FRONTEND_URL,
   credentials: true
@@ -46,11 +52,7 @@ server.use(expressSession({
     httpOnly: true,
     secure: true
   },
-  store: new PrismaSessionStore(
-    new PrismaClient(), {
-      checkPeriod: 2 * 60 * 1000,
-    }
-  )
+  store: sessionStore
 }))
 
 server.use('/user', user);

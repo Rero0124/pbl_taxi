@@ -24,7 +24,7 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime? @updatedAt
   init          Boolean   @default(true)
-
+  
   payment               UserPayment?
   rate                  UserRate[]          @relation(name: "userRate_user")
   ratedUser             UserRate[]          @relation(name: "userRate_ratedUser")
@@ -105,12 +105,12 @@ model Session {
 
 model UserLoginHistory {
   id          String    @id @default(uuid())
-  userId      String    
+  userId      String?    
   ip          String?
   loggedAt    DateTime  @default(now())
   success     Boolean
 
-  user        User  @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  user        User?  @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
   @@index([userId])
   @@index([success])

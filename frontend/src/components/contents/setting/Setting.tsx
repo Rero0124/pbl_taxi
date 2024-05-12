@@ -49,7 +49,7 @@ const Setting = () => {
     }
 
     dispatch(settingSet(settings));
-    navigate('/');
+    navigate(-1);
   }
 
   return (
@@ -73,7 +73,7 @@ const Setting = () => {
           </SettingListItem>
         </SettingList>
         <SettingSaveContainer>
-          <SettingCancel type="button" onClick={() => { navigate('/') }}>취소</SettingCancel>
+          <SettingCancel type="button" onClick={() => { navigate(-1) }}>취소</SettingCancel>
           <SettingSave>확인</SettingSave>
         </SettingSaveContainer>
       </form>
