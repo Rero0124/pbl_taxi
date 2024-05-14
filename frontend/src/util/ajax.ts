@@ -1,9 +1,14 @@
 type CallBackFunction = (res: BackendResponseData) => any;
 type ErrorFunction = (err: any) => any;
 
-export const ajax = async (url: string | Request | URL, option?: RequestInit, callBack?: CallBackFunction, error?: ErrorFunction) => {
+interface customAjaxOption extends RequestInit{
+  headerInit?: boolean;
+}
+
+export const ajax = async (url: string | Request | URL, option?: customAjaxOption, callBack?: CallBackFunction, error?: ErrorFunction) => {
   try {
-    const data: BackendResponseData = await (await fetch(url, { method: "GET", credentials: "include", ...option, headers: { "Content-Type": "application/json", ...option?.headers }})).json();
+    const headers = option?.headerInit === false ? option?.headers : { "Content-Type": "application/json", ...option?.headers }
+    const data: BackendResponseData = await (await fetch(url, { method: "GET", credentials: "include", ...option, headers: headers})).json();
     if(callBack) { callBack(data); }
     else {
       if(data.message === "success") {
@@ -19,22 +24,22 @@ export const ajax = async (url: string | Request | URL, option?: RequestInit, ca
   }
 }
 
-export const get = async (url: string | Request | URL, option?: RequestInit, callBack?: CallBackFunction, error?: ErrorFunction) => {
+export const get = async (url: string | Request | URL, option?: customAjaxOption, callBack?: CallBackFunction, error?: ErrorFunction) => {
   return await ajax(url, { ...option, method: "GET" }, callBack, error);
 }
 
-export const post = async (url: string | Request | URL, option?: RequestInit, callBack?: CallBackFunction, error?: ErrorFunction) => {
+export const post = async (url: string | Request | URL, option?: customAjaxOption, callBack?: CallBackFunction, error?: ErrorFunction) => {
   return await ajax(url, { ...option, method: "POST" }, callBack, error);
 }
 
-export const put = async (url: string | Request | URL, option?: RequestInit, callBack?: CallBackFunction, error?: ErrorFunction) => {
+export const put = async (url: string | Request | URL, option?: customAjaxOption, callBack?: CallBackFunction, error?: ErrorFunction) => {
   return await ajax(url, { ...option, method: "PUT" }, callBack, error);
 }
 
-export const patch = async (url: string | Request | URL, option?: RequestInit, callBack?: CallBackFunction, error?: ErrorFunction) => {
+export const patch = async (url: string | Request | URL, option?: customAjaxOption, callBack?: CallBackFunction, error?: ErrorFunction) => {
   return await ajax(url, { ...option, method: "PATCH" }, callBack, error);
 }
 
-export const del = async (url: string | Request | URL, option?: RequestInit, callBack?: CallBackFunction, error?: ErrorFunction) => {
+export const del = async (url: string | Request | URL, option?: customAjaxOption, callBack?: CallBackFunction, error?: ErrorFunction) => {
   return await ajax(url, { ...option, method: "DELETE" }, callBack, error);
 }

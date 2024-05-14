@@ -12,6 +12,7 @@ import user from './router/user';
 import auth from './router/auth';
 import search from './router/search';
 import driver from './router/message';
+import file from './router/file';
 
 dotenv.config();
 
@@ -59,6 +60,7 @@ server.use('/user', user);
 server.use('/auth', auth);
 server.use('/search', search);
 server.use('/message', driver);
+server.use('/file', file);
 
 // https.createServer(sslOption, server).listen(port, () => { console.log('서버 시작') }); // ssl 미사용시
 spdy.createServer(sslOption, server).listen(port, () => { console.log('서버 시작') }); // ssl 사용시

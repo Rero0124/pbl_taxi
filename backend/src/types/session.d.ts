@@ -12,6 +12,7 @@ interface SessionUser {
   name: string | null;
   phone: number;
   email: string | null;
+  image: string | null;
   inward: boolean;
   quickly: boolean;
   song: boolean;

@@ -8,6 +8,9 @@ export const MyPageContainer = styled.div`
 `;
 
 export const MyPageHeaderContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
   width: 80vw;
   height: 11vh;
 `;

@@ -13,6 +13,7 @@ export interface User {
   name?: string;
   phone?: number;
   email?: string;
+  image?: string;
   createdAt?: Date;
   updatedAt?: Date;
   init?: boolean;

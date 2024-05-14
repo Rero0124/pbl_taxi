@@ -1,15 +1,27 @@
 import { RootState } from "../../../store/store";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import icon from "../../../images/test-icon.png";
 import { MyPageBodyContainer, MyPageBodyIconContainer, MyPageBodyIconImg, MyPageBodyIconLink, MyPageBodyIconName, MyPageBodyIconTable, MyPageBodyIconTableTd, MyPageBodyIconTableTr, MyPageContainer, MyPageHeaderContainer, MyPageHeaderName, MyPageHeaderProfileImg  } from "./StyledMyPage";
+import { PopupParam, popupSet, popupShow } from "../../../store/popupReducer";
 
 const MyPage = () => {
+  const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
+
+  const profileOnClick = () => {
+    const popupSetting: PopupParam = {
+      type: "image",
+      data: "",
+    };
+
+    dispatch(popupSet(popupSetting));
+    dispatch(popupShow());
+  }
 
   return (
     <MyPageContainer>
       <MyPageHeaderContainer>
-        <MyPageHeaderProfileImg />
+        <MyPageHeaderProfileImg src={user.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${user.image}` : icon} onClick={profileOnClick}/>
         <MyPageHeaderName>{user.name}</MyPageHeaderName>
       </MyPageHeaderContainer>
       <MyPageBodyContainer>
