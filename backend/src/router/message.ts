@@ -47,13 +47,14 @@ export const unsetResponse = async (userId: string) => {
   drivers.delete(userId);
 }
 
-export const callSendDriver = async (customer: SessionUser, driverId: string) => {
+export const callSendDriver = async (customer: SessionUser, driverId: string, address: MatchAddress) => {
   const driverResponse = drivers.get(driverId);
   if(driverResponse) {
     const eventData = {
       event: "called",
       data: {
-        customer: customer
+        customer: customer,
+        address: address
       }
     }
 
@@ -61,21 +62,23 @@ export const callSendDriver = async (customer: SessionUser, driverId: string) =>
   }
 }
 
-export const matchSend = async (customer: SessionUser, driver: SessionUser) => {
+export const matchSend = async (customer: SessionUser, driver: SessionUser, address: MatchAddress) => {
   const customerResponse = allUsers.get(customer.id);
   const driverResponse = allUsers.get(driver.id);
   if(customerResponse && driverResponse) {
     const customerEventData = {
       event: "matchedDriver",
       data: {
-        driver: driver
+        driver: driver,
+        address: address
       }
     }
 
     const driverEventData = {
       event: "matchedCustomer",
       data: {
-        customer: customer
+        customer: customer,
+        address: address
       }
     }
 

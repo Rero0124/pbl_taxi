@@ -6,12 +6,13 @@ import { SessionUser } from "../types/session";
 const router: Router = express.Router();
 const prisma = new PrismaClient();
 
-const calledUsers = new Map<string, SessionUser>();
+const calledUsers = new Map<string, {user: SessionUser, address: MatchAddress}>();
 
 const query = (x: string, y: string, inward: boolean, quickly: boolean, song: boolean) => `
 SELECT 
   "name",
   "phone",
+  "image",
   "userId",
   "geom",
   "distance",
@@ -26,6 +27,7 @@ FROM
     SELECT
       usr."name",
       usr."phone",
+      usr."image",
       loc."userId",
       st_astext(loc."geom") AS "geom",
       loc."distance",
@@ -94,11 +96,11 @@ router.get('/speed', async (req: GetRequest<{}, LocateQuery>, res: ExpressRespon
   }
 })
 
-router.post('/match/driver', async (req: PostRequest<{driverId: string}>, res: ExpressResponse) => {
+router.post('/match/driver', async (req: PostRequest<MatchDriverBody>, res: ExpressResponse) => {
   try{
     if(req.session.user !== undefined) {
-      calledUsers.set(req.session.user.id, req.session.user);
-      callSendDriver(req.session.user, req.body.driverId);
+      calledUsers.set(req.session.user.id, {user: req.session.user, address: req.body.address});
+      callSendDriver(req.session.user, req.body.driverId, req.body.address);
       res.status(200).json({ message: "success" });
     } else {
       res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
@@ -127,7 +129,7 @@ router.post('/match/customer', async (req: PostRequest<{customerId: string}>, re
       const customer = calledUsers.get(req.body.customerId);
       if(customer) {
         calledUsers.delete(req.body.customerId);
-        matchSend(customer, req.session.user);
+        matchSend(customer.user, req.session.user, customer.address);
         res.status(200).json({ message: "success" });
       } else {
         res.status(200).json({ message: "fail" });

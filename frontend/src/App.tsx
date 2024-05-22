@@ -26,13 +26,7 @@ function App() {
       const locpos: GeoLocationPosition = geoloc.coords
       dispatch(locationSet(locpos))
       if(callback) callback();
-      if(appType === "driver") {
-        put(`${process.env.REACT_APP_BACKEND_URL}/user/locate`, {
-          body: JSON.stringify({ x: locpos.longitude, y: locpos.latitude })
-        }, (data: BackendResponseData) => {
-          
-        });
-      }
+      if(appType === "driver") put(`${process.env.REACT_APP_BACKEND_URL}/user/locate`, { body: JSON.stringify({ x: locpos.longitude, y: locpos.latitude })}, () => {});
     }, (err) => {
       if(err.code === err.PERMISSION_DENIED) {
         dispatch(schdulerUnSet());
@@ -88,11 +82,22 @@ function App() {
     if(location.isEnable) {
       updateGeoLocation();
       const timer = setInterval(updateGeoLocation, 5000);
+      dispatch(schdulerUnSet())
       dispatch(schdulerSet(timer));
     } else {
       dispatch(schdulerUnSet());
     }
   }, [])
+
+  useEffect(() => {
+    if(location.isEnable) {
+      const timer = setInterval(updateGeoLocation, 5000);
+      dispatch(schdulerUnSet())
+      dispatch(schdulerSet(timer));
+    } else {
+      dispatch(schdulerUnSet());
+    }
+  }, [appType])
 
   return (
     <div className="App">

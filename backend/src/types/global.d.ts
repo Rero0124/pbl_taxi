@@ -15,6 +15,15 @@ interface ResponseData {
   data?: any; 
 } 
 
+interface AddressType {
+  title: string;
+  address: string;
+  point: {
+    x: number;
+    y: number;
+  }
+}
+
 interface GetRequest<Params = any, Query = any> extends ExpressRequest {
   readonly params: Params
   readonly query: Query

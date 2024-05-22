@@ -1,10 +1,29 @@
-import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { PopupBottomButtonContainer, PopupButton, PopupContainer, PopupContent, PopupContentContainer, PopupTitle, PopupTitleContainer, PopupTopButtonContainer } from "./StyledPopup"
+import { ChangeEvent, ComponentProps, forwardRef, useEffect, useRef, useState } from "react";
+import { PopupBottomButtonContainer, PopupButton, PopupContainer, PopupContent, PopupContentContainer, PopupMap, PopupProfileImage, PopupTitle, PopupTitleContainer, PopupTopButtonContainer } from "./StyledPopup"
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import { popupClose } from "../../../store/popupReducer";
-import { post } from "../../../util/ajax";
+import { get, post } from "../../../util/ajax";
 import { useNavigate } from "react-router-dom";
+import icon from "../../../images/test-icon.png";
+import { Map, View } from "ol";
+import TileLayer from "ol/layer/Tile";
+import { XYZ } from "ol/source";
+
+const PopupMapDiv = forwardRef((props: ComponentProps<any>, ref) => {
+  return (
+    <PopupMap ref={ref} id={props.id} name={props.name} autoComplete={"off"} maxLength={props.maxlength} onBlur={props.onBlur} onChange={props.onChange} {...props}></PopupMap>
+  )
+})
+
+const baseLayer = new TileLayer({
+  visible: true,
+  source: new XYZ({
+    url: "http://api.vworld.kr/req/wmts/1.0.0/" + process.env.REACT_APP_VWORLD_KEY + "/Base/{z}/{y}/{x}.png",
+    crossOrigin: "anonymous",
+  }),
+  zIndex: -1
+})
 
 const closeButton = (closeText: string, closeOnClick: () => void) => (
   <PopupTopButtonContainer onClick={closeOnClick}>{closeText}</PopupTopButtonContainer>
@@ -28,13 +47,26 @@ const Popup = () => {
   const [content, setContent] = useState<JSX.Element>(<></>);
 
   const fileRef = useRef<HTMLInputElement>(null);
-  const imageView = useRef<HTMLImageElement>(null);
+  const imageViewRef = useRef<HTMLImageElement>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
+
+  const map = new Map({
+    layers: [baseLayer],
+    view: new View({
+      zoom: 16,
+      minZoom: 7,
+      maxZoom: 18,
+      projection : 'EPSG:4326'
+    }),
+    controls: []
+  });
   
   const cancelOnClick = () => {
     dispatch(popupClose());
   }
 
   useEffect(() => {
+    console.log(popup.data)
     if(popup.type === "called") {
       const saveOnClick = () => {
         post(`${process.env.REACT_APP_BACKEND_URL}/search/match/customer`, { body: JSON.stringify({customerId: popup.data.customer.id}) }, () => {});
@@ -43,13 +75,49 @@ const Popup = () => {
       setTopButton(closeButton("닫기", cancelOnClick));
       setBottomButton(saveAndCancelButton("받기", saveOnClick, "거절", cancelOnClick));
       setTitleText("택시 호출");
-      setContent(<p>{popup.data.customer.id}</p>);
+      setContent(
+        <>
+          <div>
+            <PopupProfileImage src={popup.data.customer.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${popup.data.customer.image}` : icon} />
+            <p>{popup.data.customer.name ?? popup.data.customer.id}</p>
+          </div>
+          <p>{popup.data.customer.inward ? "내" : "외"}향적 / {popup.data.customer.quickly ? "빠르게" : "안전하게"} / 노래{popup.data.customer.song ? "들음" + (popup.data.customer.songName ? "예시) " + popup.data.customer.song : "") : "안들음" }</p>
+          <p>시작지: {popup.data.address.start.title ?? popup.data.address.start.address}{popup.data.address.start.title ? " / " + popup.data.address.start.address : ""}</p>
+          <p>도착지: {popup.data.address.end.title ?? popup.data.address.end.address}{popup.data.address.end.title ? " / " + popup.data.address.end.address : ""}</p>
+        </>
+      );
     } else if(popup.type.indexOf("matched") > -1) {
       setTopButton(closeButton("닫기", cancelOnClick));
       setBottomButton(<></>);
       setTitleText("택시 매칭됨");
-      if(popup.type.indexOf("Driver") > -1) setContent(<p>{popup.data.driver.id}</p>);
-      else setContent(<p>{popup.data.customer.id}</p>);
+      if(popup.type.indexOf("Driver") > -1) {
+        setContent(
+          <>
+            <div>
+              <PopupProfileImage src={popup.data.driver.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${popup.data.driver.image}` : icon} />
+              <p>{popup.data.driver.name ?? popup.data.driver.id}</p>
+            </div>
+            <p>전화번호: {popup.data.driver.phone}</p>
+            <p>{popup.data.driver.inward ? "내" : "외"}향적 / {popup.data.driver.quickly ? "빠르게" : "안전하게"} / 노래{popup.data.driver.song ? "들음" + (popup.data.driver.songName ? "예시) " + popup.data.driver.songName : "") : "안들음" }</p>
+            <p>시작지: {popup.data.address.start.title ?? popup.data.address.start.address}{popup.data.address.start.title ? " / " + popup.data.address.start.address : ""}</p>
+            <p>도착지: {popup.data.address.end.title ?? popup.data.address.end.address}{popup.data.address.end.title ? " / " + popup.data.address.end.address : ""}</p>
+            <PopupMapDiv ref={mapRef}></PopupMapDiv>
+          </>
+        );
+      } else {
+        setContent(
+          <>
+            <div>
+              <PopupProfileImage src={popup.data.customer.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${popup.data.customer.image}` : icon} />
+              <p>{popup.data.customer.name ?? popup.data.customer.id}</p>
+            </div>
+            <p>전화번호: {popup.data.customer.phone}</p>
+            <p>{popup.data.customer.inward ? "내" : "외"}향적 / {popup.data.customer.quickly ? "빠르게" : "안전하게"} / 노래{popup.data.customer.song ? "들음" + (popup.data.customer.songName ? "예시) " + popup.data.customer.song : "") : "안들음" }</p>
+            <p>시작지: {popup.data.address.start.title ?? popup.data.address.start.address}{popup.data.address.start.title ? " / " + popup.data.address.start.address : ""}</p>
+            <p>도착지: {popup.data.address.end.title ?? popup.data.address.end.address}{popup.data.address.end.title ? " / " + popup.data.address.end.address : ""}</p>
+          </>
+        );
+      }
     } else if(popup.type === "image") {
       let selectImage: File;
       const selectFile = (e: ChangeEvent<HTMLInputElement>) => {
@@ -59,8 +127,8 @@ const Popup = () => {
             selectImage = file;
             const reader = new FileReader();
             reader.onloadend = () => {
-              if(imageView.current && reader.result) {
-                imageView.current.src = reader.result.toString();
+              if(imageViewRef.current && reader.result) {
+                imageViewRef.current.src = reader.result.toString();
               }
             }
             reader.readAsDataURL(file);
@@ -84,7 +152,7 @@ const Popup = () => {
         if(fileRef.current) fileRef.current.click();
       }
 
-      if(imageView.current) imageView.current.src = "";
+      if(imageViewRef.current) imageViewRef.current.src = "";
       
       setTopButton(closeButton("닫기", cancelOnClick));
       setBottomButton(saveAndCancelButton("저장", saveOnClick, "취소", cancelOnClick));
@@ -92,7 +160,7 @@ const Popup = () => {
         <>
           <p onClick={chooseFileClick}>이미지 업로드</p>
           <p>등록된 이미지</p>
-          <img ref={imageView} />
+          <img ref={imageViewRef} />
           <input ref={fileRef} type="file" onChange={selectFile} hidden/>
         </>
       );
@@ -104,6 +172,14 @@ const Popup = () => {
       setContent(<></>);
     }
   }, [popup]);
+
+  useEffect(() => {
+    map.setTarget(undefined);
+    if(mapRef.current) {
+      mapRef.current.innerHTML = "";
+      map.setTarget(mapRef.current);
+    }
+  }, [content])
 
   return (
     <PopupContainer display={popup.display}>

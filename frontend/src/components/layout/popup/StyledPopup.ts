@@ -29,7 +29,7 @@ export const PopupTitleContainer = styled.div`
   top: 4vh;
   left: 0;
   width: 100vw;
-  height: 20vh;
+  height: 10vh;
 `;
 
 export const PopupTitle = styled.p`
@@ -38,10 +38,10 @@ export const PopupTitle = styled.p`
 
 export const PopupContentContainer = styled.div`
   position: absolute;
-  top: 24vh;
+  top: 14vh;
   left: 0;
   width: 100vw;
-  height: 56vh;
+  height: 66vh;
 `
 export const PopupContent = styled.p`
   
@@ -59,4 +59,14 @@ export const PopupBottomButtonContainer = styled.div`
 
 export const PopupButton = styled.div`
   width: 50vw;
+`;
+
+export const PopupProfileImage = styled.img`
+  max-width: 10vw;
+`
+
+export const PopupMap = styled.div`
+  margin: auto;
+  width: 60vw;
+  height: 40vh;
 `;

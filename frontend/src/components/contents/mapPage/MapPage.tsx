@@ -14,8 +14,9 @@ import Text from "ol/style/Text";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import { useSearchParams } from "react-router-dom";
-import { MapContainer, MapPageContainer, MapSearchContainer, MapSearchForm, MapSearchInput, MapSearchResultContainer, MapSearchResultRow, MapSearchResultRowMainTitle, MapSearchResultRowSubTitle } from "./StyledMapPage";
+import { MapContainer, MapPageContainer, MapSearchContainer, MapSearchForm, MapSearchInput, MapSearchResultContainer, MapSearchResultRow, MapSearchResultRowImage, MapSearchResultRowMainTitle, MapSearchResultRowSubTitle, MapSearchResultRowTitleContainer } from "./StyledMapPage";
 import { get, post } from "../../../util/ajax";
+import icon from "../../../images/test-icon.png";
 
 interface UserLocateAndTendency {
   userId: string,
@@ -99,6 +100,7 @@ interface AddressType {
 interface SearchDriverResult {
   userId: string,
   geom: string,
+  image: string | null,
   distance: number,
   inward: boolean,
   quickly: boolean,
@@ -235,7 +237,7 @@ const MapPage = () => {
 
   const selectDriverRow = (idx: number) => {
     setSelectedSearchDriverResultRow(idx);
-    post(`${process.env.REACT_APP_BACKEND_URL}/search/match/driver`, { body: JSON.stringify({driverId: searchDriverResult[idx].userId}) }, () => {});
+    post(`${process.env.REACT_APP_BACKEND_URL}/search/match/driver`, { body: JSON.stringify({driverId: searchDriverResult[idx].userId, address: {start: startAddress, end: endAddress}})}, () => {});
   }
 
   useEffect(() => {
@@ -438,8 +440,11 @@ const MapPage = () => {
           {searchDriverResult.length > 0 ? (
             searchDriverResult.map((item, idx) => {
               return <MapSearchResultRow key={idx} onClick={() => { selectDriverRow(idx) }}>
-                <MapSearchResultRowMainTitle>{item.userId} / 매칭점수: {item.point}</MapSearchResultRowMainTitle>
-                <MapSearchResultRowSubTitle>별점: {item.score} / {item.inward ? "내" : "외"}향적 / {item.inward ? "빠르게" : "안전하게"} / 노래{item.song ? "들음" + (item.songName ? "예시) " + item.song : "") : "안들음" }</MapSearchResultRowSubTitle>
+                <MapSearchResultRowImage src={item.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${item.image}` : icon}/>
+                <MapSearchResultRowTitleContainer>
+                  <MapSearchResultRowMainTitle>{item.userId} / 매칭점수: {item.point}</MapSearchResultRowMainTitle>
+                  <MapSearchResultRowSubTitle>별점: {item.score} / {item.inward ? "내" : "외"}향적 / {item.quickly ? "빠르게" : "안전하게"} / 노래{item.song ? "들음" + (item.songName ? "예시) " + item.song : "") : "안들음" }</MapSearchResultRowSubTitle>
+                </MapSearchResultRowTitleContainer>
               </MapSearchResultRow>
             })
           ) : (
@@ -468,8 +473,10 @@ const MapPage = () => {
                     const locateTitle = item.title;
                     const locateAddress = item.address?.road || item.address?.parcel;
                     return <MapSearchResultRow key={idx} onClick={() => { selectRow(idx) }}>
-                      <MapSearchResultRowMainTitle>{locateTitle || locateAddress}</MapSearchResultRowMainTitle>
-                      { locateTitle ? (<MapSearchResultRowSubTitle>{locateAddress}</MapSearchResultRowSubTitle>) : (<></>) }
+                      <MapSearchResultRowTitleContainer>
+                        <MapSearchResultRowMainTitle>{locateTitle || locateAddress}</MapSearchResultRowMainTitle>
+                        { locateTitle ? (<MapSearchResultRowSubTitle>{locateAddress}</MapSearchResultRowSubTitle>) : (<></>) }
+                      </MapSearchResultRowTitleContainer>
                     </MapSearchResultRow>
                   })
                 ) : (

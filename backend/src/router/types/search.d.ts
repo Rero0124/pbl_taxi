@@ -17,3 +17,13 @@ interface SearchResult {
   point: number,
   songName: string | null
 }
+
+interface MatchAddress {
+  start: AddressType;
+  end: AddressType;
+}
+
+interface MatchDriverBody {
+  driverId: string;
+  address: MatchAddress;
+}

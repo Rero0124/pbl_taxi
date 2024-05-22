@@ -30,7 +30,18 @@ export const MapSearchResultContainer = styled.div`
 
 export const MapSearchResultRow = styled.div`
   display: flex;
+  flex-direction: row;
+  justify-content: center;
+`;
+
+export const MapSearchResultRowImage = styled.img`
+  width: 10vw;
+`;
+
+export const MapSearchResultRowTitleContainer = styled.div`
+  display: flex;
   flex-direction: column;
+  width: 70vw;
 `;
 
 export const MapSearchResultRowMainTitle = styled.h2`
