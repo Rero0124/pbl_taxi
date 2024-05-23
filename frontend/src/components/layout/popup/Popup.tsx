@@ -3,12 +3,21 @@ import { PopupBottomButtonContainer, PopupButton, PopupContainer, PopupContent, 
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import { popupClose } from "../../../store/popupReducer";
-import { get, post } from "../../../util/ajax";
+import { del, post } from "../../../util/ajax";
 import { useNavigate } from "react-router-dom";
 import icon from "../../../images/test-icon.png";
-import { Map, View } from "ol";
+import { Feature, Map, View } from "ol";
 import TileLayer from "ol/layer/Tile";
 import { XYZ } from "ol/source";
+import VectorLayer from "ol/layer/Vector";
+import VectorSource from "ol/source/Vector";
+import Style from "ol/style/Style";
+import Fill from "ol/style/Fill";
+import Stroke from "ol/style/Stroke";
+import { LineString } from "ol/geom";
+import { Coordinate } from "ol/coordinate";
+
+let coordinates: number[][] = [];
 
 const PopupMapDiv = forwardRef((props: ComponentProps<any>, ref) => {
   return (
@@ -24,6 +33,47 @@ const baseLayer = new TileLayer({
   }),
   zIndex: -1
 })
+
+const lineLayer = new VectorLayer({
+  visible: true,
+  style: new Style({
+      fill: new Fill({ color: '#00FF00' }),
+      stroke: new Stroke({ color: '#000000', width: 10 })
+  })
+})
+
+const map = new Map({
+  layers: [baseLayer, lineLayer],
+  view: new View({
+    zoom: 16,
+    minZoom: 7,
+    maxZoom: 18,
+    projection : 'EPSG:4326',
+  }),
+  controls: []
+});
+
+let i = 0;
+
+export const getDriverLocate = (x: number, y: number) => {
+  coordinates.push([x, y + (i++ * 0.0001)]);
+  const feature = new Feature({
+    geometry: new LineString(coordinates.length > 1 ? coordinates : [coordinates[0], coordinates[0]])
+  });
+  const lineSource = new VectorSource({});
+  lineSource.addFeature(feature);
+  const nowCenter = map.getView().getCenter();
+  lineLayer.setSource(lineSource);
+  map.getView().setCenter(nowCenter ?? [x, y]);
+};
+
+const createInterval = (callback: () => void) => {
+  return setInterval(callback, 5000);
+}
+
+const removeInterval = (id: NodeJS.Timer | undefined) => {
+  clearInterval(id);
+}
 
 const closeButton = (closeText: string, closeOnClick: () => void) => (
   <PopupTopButtonContainer onClick={closeOnClick}>{closeText}</PopupTopButtonContainer>
@@ -50,23 +100,12 @@ const Popup = () => {
   const imageViewRef = useRef<HTMLImageElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
 
-  const map = new Map({
-    layers: [baseLayer],
-    view: new View({
-      zoom: 16,
-      minZoom: 7,
-      maxZoom: 18,
-      projection : 'EPSG:4326'
-    }),
-    controls: []
-  });
-  
   const cancelOnClick = () => {
     dispatch(popupClose());
   }
 
   useEffect(() => {
-    console.log(popup.data)
+    map.setTarget(undefined);
     if(popup.type === "called") {
       const saveOnClick = () => {
         post(`${process.env.REACT_APP_BACKEND_URL}/search/match/customer`, { body: JSON.stringify({customerId: popup.data.customer.id}) }, () => {});
@@ -87,7 +126,10 @@ const Popup = () => {
         </>
       );
     } else if(popup.type.indexOf("matched") > -1) {
-      setTopButton(closeButton("닫기", cancelOnClick));
+      setTopButton(closeButton("닫기", () => {
+        del(`${process.env.REACT_APP_BACKEND_URL}/user/locate`, {}, () => {})
+        cancelOnClick();
+      }));
       setBottomButton(<></>);
       setTitleText("택시 매칭됨");
       if(popup.type.indexOf("Driver") > -1) {
@@ -177,6 +219,7 @@ const Popup = () => {
     map.setTarget(undefined);
     if(mapRef.current) {
       mapRef.current.innerHTML = "";
+      coordinates = [];
       map.setTarget(mapRef.current);
     }
   }, [content])

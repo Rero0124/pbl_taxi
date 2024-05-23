@@ -12,6 +12,7 @@ import { User, userSet } from './store/userReducer';
 import { GeoLocationPosition, locationDeny, locationSet, schdulerSet, schdulerUnSet } from './store/locationReducer';
 import { del, put } from './util/ajax';
 import { PopupParam, popupSet, popupShow } from './store/popupReducer';
+import { getDriverLocate } from './components/layout/popup/Popup';
 
 function App() {
   const dispatch = useDispatch();
@@ -55,12 +56,16 @@ function App() {
           type: eventType,
           data: data,
         };
+
+        console.log(event)
         if(eventType === "called") {
           dispatch(popupSet(popupSetting));
           dispatch(popupShow());
         } else if(eventType.indexOf("matched") > -1) {
           dispatch(popupSet(popupSetting));
           dispatch(popupShow());
+        } else if (eventType === "driverLocate") {
+          getDriverLocate(data.x, data.y);
         }
         return;
       })

@@ -4,8 +4,12 @@ import { SessionUser } from "../types/session";
 
 const router: Router = express.Router();
 
+const prisma = new PrismaClient();
+
 const allUsers = new Map<string, ExpressResponse>();
 const drivers = new Map<string, ExpressResponse>();
+
+const driverLocateSendInterval = new Map<string, NodeJS.Timeout>();
 
 router.delete('/', (req: DeleteRequest, res: ExpressResponse) => {
   if(req.session.user !== undefined) {
@@ -84,7 +88,33 @@ export const matchSend = async (customer: SessionUser, driver: SessionUser, addr
 
     customerResponse.write(`data: ${JSON.stringify(customerEventData)}\n\n`);
     driverResponse.write(`data: ${JSON.stringify(driverEventData)}\n\n`);
+
+    setDriverLocateSend(customer.id, driver.id);
   }
+}
+
+const setDriverLocateSend = async (customerId: string, driverId: string) => {
+  const customerResponse = allUsers.get(customerId);
+  if(customerResponse) {
+    const id = setInterval(async () => {
+      const locate = await prisma.$queryRawUnsafe<{x: number, y: number}[]>(`
+        SELECT ST_X("geom") as x, ST_Y("geom") as y FROM "UserLocate" WHERE "userId" = '${driverId}'
+      `)
+
+      const driverLocateData = {
+        event: "driverLocate",
+        data: locate[0]
+      }
+
+      customerResponse.write(`data: ${JSON.stringify(driverLocateData)}\n\n`);
+    }, 5000);
+
+    driverLocateSendInterval.set(customerId, id);
+  }
+}
+
+export const unDriverLocateSend = async (customerId: string) => {
+  clearInterval(driverLocateSendInterval.get(customerId));
 }
 
 export default router;
