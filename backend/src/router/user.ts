@@ -1,6 +1,5 @@
 import express, { Router } from "express";
 import { Prisma, PrismaClient, User, UserTendency } from "@prisma/client";
-import { unDriverLocateSend } from "./message";
 
 interface UserInfo extends User {
   tendency: UserTendency | null
@@ -285,19 +284,6 @@ router.post('/ban', async (req: PostRequest<TargetUserBody>, res: ExpressRespons
         }
       });
       res.status(200).json({ message: "success", data: ban });
-    } else {
-      res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
-    }
-  } catch {
-    res.status(500).send({ message: "Internal Server Error" })
-  }
-})
-
-router.delete('/locate', async (req: GetRequest, res: ExpressResponse) => {
-  try {
-    if(req.session.user !== undefined) {
-      unDriverLocateSend(req.session.user.id);
-      res.status(200).json({ message: "success" });
     } else {
       res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
     }

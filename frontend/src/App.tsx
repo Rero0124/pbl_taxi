@@ -57,7 +57,6 @@ function App() {
           data: data,
         };
 
-        console.log(event)
         if(eventType === "called") {
           dispatch(popupSet(popupSetting));
           dispatch(popupShow());

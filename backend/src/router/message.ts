@@ -113,8 +113,16 @@ const setDriverLocateSend = async (customerId: string, driverId: string) => {
   }
 }
 
-export const unDriverLocateSend = async (customerId: string) => {
-  clearInterval(driverLocateSendInterval.get(customerId));
+export const matchEnd = async (customerId: string) => {
+  const customerResponse = allUsers.get(customerId);
+  if(customerResponse) {
+    clearInterval(driverLocateSendInterval.get(customerId));
+    const matchEndData = {
+      event: "matchEnd"
+    }
+
+    customerResponse.write(`data: ${JSON.stringify(matchEndData)}\n\n`);
+  }
 }
 
 export default router;

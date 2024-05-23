@@ -1,12 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 import express, { Router } from "express";
-import { callSendDriver, matchSend } from "./message";
+import { callSendDriver, matchEnd, matchSend } from "./message";
 import { SessionUser } from "../types/session";
 
 const router: Router = express.Router();
 const prisma = new PrismaClient();
 
 const calledUsers = new Map<string, {user: SessionUser, address: MatchAddress}>();
+const matchedDriver = new Map<string, true>();
 
 const query = (x: string, y: string, inward: boolean, quickly: boolean, song: boolean) => `
 SELECT 
@@ -134,6 +135,20 @@ router.post('/match/customer', async (req: PostRequest<{customerId: string}>, re
       } else {
         res.status(200).json({ message: "fail" });
       }
+    } else {
+      res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
+    }
+  } catch {
+    res.status(500).send({ message: "Internal Server Error" })
+  }
+})
+
+router.delete('/match/end/:id', async (req: DeleteRequest<UserParams>, res: ExpressResponse) => {
+  try{
+    if(req.session.user !== undefined) {
+      matchedDriver.delete(req.session.user.id);
+      matchEnd(req.params.id);
+      res.status(200).json({ message: "success" });
     } else {
       res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
     }

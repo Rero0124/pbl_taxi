@@ -126,11 +126,7 @@ const Popup = () => {
         </>
       );
     } else if(popup.type.indexOf("matched") > -1) {
-      setTopButton(closeButton("닫기", () => {
-        del(`${process.env.REACT_APP_BACKEND_URL}/user/locate`, {}, () => {})
-        cancelOnClick();
-      }));
-      setBottomButton(<></>);
+      setTopButton(<></>);
       setTitleText("택시 매칭됨");
       if(popup.type.indexOf("Driver") > -1) {
         setContent(
@@ -146,6 +142,7 @@ const Popup = () => {
             <PopupMapDiv ref={mapRef}></PopupMapDiv>
           </>
         );
+        setBottomButton(<></>);
       } else {
         setContent(
           <>
@@ -159,6 +156,13 @@ const Popup = () => {
             <p>도착지: {popup.data.address.end.title ?? popup.data.address.end.address}{popup.data.address.end.title ? " / " + popup.data.address.end.address : ""}</p>
           </>
         );
+        setBottomButton(saveAndCancelButton("취소", () => {
+          del(`${process.env.REACT_APP_BACKEND_URL}/user/locate/${popup.data.customer.id}`, {}, () => {})
+          cancelOnClick();
+        }, "도착", () => {
+          del(`${process.env.REACT_APP_BACKEND_URL}/user/locate/${popup.data.customer.id}`, {}, () => {})
+          cancelOnClick();
+        }));
       }
     } else if(popup.type === "image") {
       let selectImage: File;
