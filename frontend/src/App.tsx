@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import { BrowserView, MobileView, isChrome, isEdge, isIE, isMobile } from 'react-device-detect';
-import Header from './components/layout/header/Header';
-import ErrorPage from './components/pages/error/ErrorPage';
-import Navigation from './components/layout/navigation/Navigation';
-import Footer from './components/layout/footer/Footer';
-import { RootState } from './store/store';
+import Header from 'components/layout/Header';
+import ErrorPage from 'components/pages/ErrorPage';
+import Navigation from 'components/layout/Navigation';
+import Footer from 'components/layout/Footer';
+import { RootState } from 'store/store';
 import { useDispatch, useSelector } from 'react-redux';
-import Section from './components/layout/section/Section';
-import { User, userSet } from './store/userReducer';
-import { GeoLocationPosition, locationDeny, locationSet, schdulerSet, schdulerUnSet } from './store/locationReducer';
-import { del, put } from './util/ajax';
-import { PopupParam, popupSet, popupShow } from './store/popupReducer';
-import { getDriverLocate } from './components/layout/popup/Popup';
+import Section from 'components/layout/Section';
+import { User, userSet } from 'store/userReducer';
+import { GeoLocationPosition, locationDeny, locationSet, schdulerSet, schdulerUnSet } from 'store/locationReducer';
+import { del, put } from 'util/ajax';
+import { PopupParam, popupSet, popupShow } from 'store/popupReducer';
+import { getDriverLocate } from 'components/pages/Popup';
 
 function App() {
   const dispatch = useDispatch();
@@ -65,6 +65,8 @@ function App() {
           dispatch(popupShow());
         } else if (eventType === "driverLocate") {
           getDriverLocate(data.x, data.y);
+        } else if(eventType === "matchEnd") {
+          dispatch(popupSet(popupSetting));
         }
         return;
       })

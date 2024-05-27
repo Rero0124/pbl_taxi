@@ -1,0 +1,67 @@
+.invaild-comment {
+  display: none;
+}
+
+.map-over-search-container {
+  position: absolute;
+  top: 0%;
+  left: 0;
+  width: 100vw;
+  height: 10vh;
+  z-index: 150;
+}
+
+.map-container {
+  width: 100vw;
+  height: 84vh;
+}
+
+.setting-row-title {
+  width: calc(50vw - 0.1vh);
+  height: 9vh;
+  border-right: 0.1vh solid black;
+  line-height: 9vh;
+}
+
+.setting-select-ul {
+  position: absolute;
+  top: 9vh;
+  left: 0px;
+  width: 50vw;
+  height: 9vh;
+  margin: 0px;
+  padding: 0px;
+  list-style: none;
+  z-index: 10;
+}
+
+.setting-select-li {
+  float: none;
+  text-align: center;
+  line-height: 9vh;
+  background-color: white;
+  opacity: 1;
+}
+
+.setting-save-container {
+  position: absolute;
+  bottom: 0.1vh;
+  left: 0;
+  border-top: 0.1vh solid black;
+  border-bottom: 0.1vh solid black;
+}
+
+.setting-cancle-button {
+  width: calc(50vw - 0.1vh);
+  height: 9vh;
+  border: 0;
+  border-right: 0.1vh solid black;
+  background-color: transparent;
+}
+
+.setting-save-button {
+  width: 50vw;
+  height: 9vh;
+  border: 0;
+  background-color: transparent;
+}

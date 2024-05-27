@@ -1,4 +1,4 @@
-import { ErrorContainer, ErrorMessage } from './StyledErrorPage';
+import "styles/Pages.css";
 
 interface Props {
   contentType: string;
@@ -14,11 +14,9 @@ const Page404 = ({ contentType }: Props): JSX.Element => {
   }
 
   return (
-    <ErrorContainer>
-      <ErrorMessage>
-        {message}
-      </ErrorMessage>
-    </ErrorContainer>
+    <div>
+      <p>{message}</p>
+    </div>
   )
 }
 

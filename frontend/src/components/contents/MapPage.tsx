@@ -6,17 +6,17 @@ import { XYZ } from "ol/source";
 import VectorSource from "ol/source/Vector";
 import Icon from "ol/style/Icon";
 import Style from "ol/style/Style";
-import { ComponentProps, FormEvent, forwardRef, useEffect, useRef, useState } from "react";
-import markerImage from "../../../images/marker.png";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import markerImage from "images/marker.png";
 import { Coordinate } from "ol/coordinate";
 import fetchJsonp from "fetch-jsonp";
 import Text from "ol/style/Text";
 import { useSelector } from "react-redux";
-import { RootState } from "../../../store/store";
+import { RootState } from "store/store";
 import { useSearchParams } from "react-router-dom";
-import { MapContainer, MapPageContainer, MapSearchContainer, MapSearchForm, MapSearchInput, MapSearchResultContainer, MapSearchResultRow, MapSearchResultRowImage, MapSearchResultRowMainTitle, MapSearchResultRowSubTitle, MapSearchResultRowTitleContainer } from "./StyledMapPage";
-import { get, post } from "../../../util/ajax";
-import icon from "../../../images/test-icon.png";
+import { get, post } from "util/ajax";
+import icon from "images/test-icon.png";
+import "styles/Contents.css";
 
 interface UserLocateAndTendency {
   userId: string,
@@ -102,9 +102,9 @@ interface SearchDriverResult {
   geom: string,
   image: string | null,
   distance: number,
-  inward: boolean,
-  quickly: boolean,
-  song: boolean,
+  inward: number,
+  quickly: number,
+  song: number,
   point: number,
   score: number,
   songName: string | null
@@ -139,12 +139,6 @@ const locateSearch = async (searchTxt: string, type: string, point?: {x: number;
   })
   return data;
 }
-
-const SearchTxtInput = forwardRef((props:ComponentProps<any>, ref) => {
-  return (
-      <MapSearchInput ref={ref} id={props.id} name={props.name} autoComplete={"off"} maxLength={props.maxlength} onBlur={props.onBlur} onChange={props.onChange} {...props}></MapSearchInput>
-  )
-});
 
 const MapPage = () => {
   const location = useSelector((state: RootState) => state.location);
@@ -434,60 +428,70 @@ const MapPage = () => {
   }, [startAddress, endAddress])
 
   return (
-    <MapPageContainer>
+    <div>
       {currentPage === "driver" ? (
-        <MapSearchResultContainer>
-          {searchDriverResult.length > 0 ? (
-            searchDriverResult.map((item, idx) => {
-              return <MapSearchResultRow key={idx} onClick={() => { selectDriverRow(idx) }}>
-                <MapSearchResultRowImage src={item.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${item.image}` : icon}/>
-                <MapSearchResultRowTitleContainer>
-                  <MapSearchResultRowMainTitle>{item.userId} / 매칭점수: {item.point}</MapSearchResultRowMainTitle>
-                  <MapSearchResultRowSubTitle>별점: {item.score} / {item.inward ? "내" : "외"}향적 / {item.quickly ? "빠르게" : "안전하게"} / 노래{item.song ? "들음" + (item.songName ? "예시) " + item.song : "") : "안들음" }</MapSearchResultRowSubTitle>
-                </MapSearchResultRowTitleContainer>
-              </MapSearchResultRow>
-            })
-          ) : (
-            <MapSearchResultRow key={0}>검색된 결과가 없습니다.</MapSearchResultRow>
-          )}
-        </MapSearchResultContainer>
+        <>
+          <p className="title">기사검색</p>
+          <div className="container">
+            {searchDriverResult.length > 0 ? (
+              searchDriverResult.map((item, idx) => {
+                return <div className="row" key={idx} onClick={() => { selectDriverRow(idx) }}>
+                  <img className="col" src={item.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${item.image}` : icon}/>
+                  <div className="col">
+                    <p>{item.userId} / 매칭점수: {item.point}</p>
+                    <p>별점: {item.score} / 성향 {item.inward === 0 ? "상관없음" : (item.inward === -1 ? "내" : "외") + "향적"}/ 목적지까지: {item.quickly === 0 ? "상관없음" : item.quickly === -1 ? "빠르게" : "안전하게"} / 노래: {item.song === 0 ? "상관없음" : item.song === -1 ? "들음" + (item.songName ? "예시) " + item.songName : "") : "안들음" }</p>
+                  </div>
+                </div>
+              })
+            ) : (
+              <div className="row">
+                <p className="col">검색된 결과가 없습니다.</p>
+              </div>
+            )}
+          </div>
+        </>
       ) : (
         currentPage === "map" ? (
           <>
-            <MapSearchContainer>
-              <p>
-                <span onClick={() => {moveSearch("start")}}>{startAddress ? startAddress.title : "목적지를 선택해주세요"}</span>
-                <span>{" > "}</span>
-                <span onClick={() => {moveSearch("end")}} >{endAddress ? endAddress.title : "목적지를 선택해주세요"}</span>
-              </p>
-            </MapSearchContainer>
-            <MapContainer id="map" ref={mapContainerRef}></MapContainer>
+            <div className="map-over-search-container container">
+              <div className="row">
+                <div className="col-row">
+                  <span onClick={() => {moveSearch("start")}}>{startAddress ? startAddress.title : "목적지를 선택해주세요"}</span>
+                  <span>{" > "}</span>
+                  <span onClick={() => {moveSearch("end")}} >{endAddress ? endAddress.title : "목적지를 선택해주세요"}</span>
+                </div>
+              </div>
+            </div>
+            <div className="col map-container" id="map" ref={mapContainerRef} />
           </>
         ) : (
           <>
-            <MapSearchForm onSubmit={searchAddress}>
-              <SearchTxtInput ref={searchTxtRef} name="searchTxt"/>
-              <MapSearchResultContainer>
-                {searchResult.length > 0 ? (
-                  searchResult.map((item, idx) => {
-                    const locateTitle = item.title;
-                    const locateAddress = item.address?.road || item.address?.parcel;
-                    return <MapSearchResultRow key={idx} onClick={() => { selectRow(idx) }}>
-                      <MapSearchResultRowTitleContainer>
-                        <MapSearchResultRowMainTitle>{locateTitle || locateAddress}</MapSearchResultRowMainTitle>
-                        { locateTitle ? (<MapSearchResultRowSubTitle>{locateAddress}</MapSearchResultRowSubTitle>) : (<></>) }
-                      </MapSearchResultRowTitleContainer>
-                    </MapSearchResultRow>
-                  })
-                ) : (
-                  <MapSearchResultRow key={0}>검색된 결과가 없습니다.</MapSearchResultRow>
-                )}
-              </MapSearchResultContainer>
-            </MapSearchForm>
+            <p className="title">주소검색</p>
+            <form onSubmit={searchAddress}>
+              <input className="block-center" ref={searchTxtRef} name="searchTxt"/>
+            </form>
+            <div>
+              {searchResult.length > 0 ? (
+                searchResult.map((item, idx) => {
+                  const locateTitle = item.title;
+                  const locateAddress = item.address?.road || item.address?.parcel;
+                  return <div className="row" key={idx} onClick={() => { selectRow(idx) }}>
+                    <div className="col">
+                      <p>{locateTitle || locateAddress}</p>
+                      { locateTitle ? (<p>{locateAddress}</p>) : (<></>) }
+                    </div>
+                  </div>
+                })
+              ) : (
+                <div className="row">
+                  <p className="col">검색된 결과가 없습니다.</p>
+                </div>
+              )}
+            </div>
           </>
         )
       )}
-    </MapPageContainer>
+    </div>
   )
 }
 

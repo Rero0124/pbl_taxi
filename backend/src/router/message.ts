@@ -106,22 +106,25 @@ const setDriverLocateSend = async (customerId: string, driverId: string) => {
         data: locate[0]
       }
 
-      customerResponse.write(`data: ${JSON.stringify(driverLocateData)}\n\n`);
+      allUsers.get(customerId)?.write(`data: ${JSON.stringify(driverLocateData)}\n\n`);
     }, 5000);
 
     driverLocateSendInterval.set(customerId, id);
   }
 }
 
-export const matchEnd = async (customerId: string) => {
+export const matchEnd = async (customerId: string, type: string) => {
   const customerResponse = allUsers.get(customerId);
   if(customerResponse) {
     clearInterval(driverLocateSendInterval.get(customerId));
     const matchEndData = {
-      event: "matchEnd"
+      event: "matchEnd",
+      data: {
+        type: type
+      }
     }
 
-    customerResponse.write(`data: ${JSON.stringify(matchEndData)}\n\n`);
+    allUsers.get(customerId)?.write(`data: ${JSON.stringify(matchEndData)}\n\n`);
   }
 }
 

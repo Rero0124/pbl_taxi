@@ -1,11 +1,10 @@
 import { ChangeEvent, ComponentProps, forwardRef, useEffect, useRef, useState } from "react";
-import { PopupBottomButtonContainer, PopupButton, PopupContainer, PopupContent, PopupContentContainer, PopupMap, PopupProfileImage, PopupTitle, PopupTitleContainer, PopupTopButtonContainer } from "./StyledPopup"
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../../store/store";
-import { popupClose } from "../../../store/popupReducer";
-import { del, post } from "../../../util/ajax";
+import { RootState } from "store/store";
+import { popupClose } from "store/popupReducer";
+import { del, post } from "util/ajax";
 import { useNavigate } from "react-router-dom";
-import icon from "../../../images/test-icon.png";
+import icon from "images/test-icon.png";
 import { Feature, Map, View } from "ol";
 import TileLayer from "ol/layer/Tile";
 import { XYZ } from "ol/source";
@@ -15,15 +14,9 @@ import Style from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
 import { LineString } from "ol/geom";
-import { Coordinate } from "ol/coordinate";
+import "styles/Pages.css";
 
 let coordinates: number[][] = [];
-
-const PopupMapDiv = forwardRef((props: ComponentProps<any>, ref) => {
-  return (
-    <PopupMap ref={ref} id={props.id} name={props.name} autoComplete={"off"} maxLength={props.maxlength} onBlur={props.onBlur} onChange={props.onChange} {...props}></PopupMap>
-  )
-})
 
 const baseLayer = new TileLayer({
   visible: true,
@@ -67,23 +60,17 @@ export const getDriverLocate = (x: number, y: number) => {
   map.getView().setCenter(nowCenter ?? [x, y]);
 };
 
-const createInterval = (callback: () => void) => {
-  return setInterval(callback, 5000);
-}
-
-const removeInterval = (id: NodeJS.Timer | undefined) => {
-  clearInterval(id);
-}
-
 const closeButton = (closeText: string, closeOnClick: () => void) => (
-  <PopupTopButtonContainer onClick={closeOnClick}>{closeText}</PopupTopButtonContainer>
+  <div className="popup-top-button-container">
+    <button onClick={closeOnClick}>{closeText}</button>
+  </div>
 )
 
 const saveAndCancelButton = (saveText: string, saveOnClick: () => void, cancelText: string, cancelOnClick: () => void) => (
-  <PopupBottomButtonContainer>
-    <PopupButton onClick={saveOnClick}>{saveText}</PopupButton>
-    <PopupButton onClick={cancelOnClick}>{cancelText}</PopupButton>
-  </PopupBottomButtonContainer>
+  <div className="popup-bottom-button-container">
+    <button className="wvw50" onClick={saveOnClick}>{saveText}</button>
+    <button className="wvw50" onClick={cancelOnClick}>{cancelText}</button>
+  </div>
 );
 
 const Popup = () => {
@@ -117,10 +104,10 @@ const Popup = () => {
       setContent(
         <>
           <div>
-            <PopupProfileImage src={popup.data.customer.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${popup.data.customer.image}` : icon} />
+            <img src={popup.data.customer.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${popup.data.customer.image}` : icon} />
             <p>{popup.data.customer.name ?? popup.data.customer.id}</p>
           </div>
-          <p>{popup.data.customer.inward ? "내" : "외"}향적 / {popup.data.customer.quickly ? "빠르게" : "안전하게"} / 노래{popup.data.customer.song ? "들음" + (popup.data.customer.songName ? "예시) " + popup.data.customer.song : "") : "안들음" }</p>
+          <p>성향: {popup.data.customer.inward === 0 ? "상관없음" : (popup.data.customer.inward === -1 ? "내" : "외") + "향적"}/ 목적지까지: {popup.data.customer.quickly === 0 ? "상관없음" : popup.data.customer.quickly === -1 ? "빠르게" : "안전하게"} / 노래: {popup.data.customer.song === 0 ? "상관없음" : popup.data.customer.song ? "들음" + (popup.data.customer.songName ? "예시) " + popup.data.customer.songName : "") : "안들음" }</p>
           <p>시작지: {popup.data.address.start.title ?? popup.data.address.start.address}{popup.data.address.start.title ? " / " + popup.data.address.start.address : ""}</p>
           <p>도착지: {popup.data.address.end.title ?? popup.data.address.end.address}{popup.data.address.end.title ? " / " + popup.data.address.end.address : ""}</p>
         </>
@@ -132,14 +119,14 @@ const Popup = () => {
         setContent(
           <>
             <div>
-              <PopupProfileImage src={popup.data.driver.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${popup.data.driver.image}` : icon} />
+              <img src={popup.data.driver.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${popup.data.driver.image}` : icon} />
               <p>{popup.data.driver.name ?? popup.data.driver.id}</p>
             </div>
             <p>전화번호: {popup.data.driver.phone}</p>
-            <p>{popup.data.driver.inward ? "내" : "외"}향적 / {popup.data.driver.quickly ? "빠르게" : "안전하게"} / 노래{popup.data.driver.song ? "들음" + (popup.data.driver.songName ? "예시) " + popup.data.driver.songName : "") : "안들음" }</p>
+            <p>성향 {popup.data.driver.inward === 0 ? "상관없음" : (popup.data.driver.inward === -1 ? "내" : "외") + "향적"}/ 목적지까지: {popup.data.driver.quickly === 0 ? "상관없음" : popup.data.driver.quickly === -1 ? "빠르게" : "안전하게"} / 노래: {popup.data.driver.song === 0 ? "상관없음" : popup.data.driver.song === -1 ? "들음" + (popup.data.driver.songName ? "예시) " + popup.data.driver.songName : "") : "안들음" }</p>
             <p>시작지: {popup.data.address.start.title ?? popup.data.address.start.address}{popup.data.address.start.title ? " / " + popup.data.address.start.address : ""}</p>
             <p>도착지: {popup.data.address.end.title ?? popup.data.address.end.address}{popup.data.address.end.title ? " / " + popup.data.address.end.address : ""}</p>
-            <PopupMapDiv ref={mapRef}></PopupMapDiv>
+            <div className="popup-map" ref={mapRef}></div>
           </>
         );
         setBottomButton(<></>);
@@ -147,11 +134,11 @@ const Popup = () => {
         setContent(
           <>
             <div>
-              <PopupProfileImage src={popup.data.customer.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${popup.data.customer.image}` : icon} />
+              <img src={popup.data.customer.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${popup.data.customer.image}` : icon} />
               <p>{popup.data.customer.name ?? popup.data.customer.id}</p>
             </div>
             <p>전화번호: {popup.data.customer.phone}</p>
-            <p>{popup.data.customer.inward ? "내" : "외"}향적 / {popup.data.customer.quickly ? "빠르게" : "안전하게"} / 노래{popup.data.customer.song ? "들음" + (popup.data.customer.songName ? "예시) " + popup.data.customer.song : "") : "안들음" }</p>
+            <p>성향: {popup.data.customer.inward === 0 ? "상관없음" : (popup.data.customer.inward === -1 ? "내" : "외") + "향적"}/ 목적지까지: {popup.data.customer.quickly === 0 ? "상관없음" : popup.data.customer.quickly === -1 ? "빠르게" : "안전하게"} / 노래: {popup.data.customer.song === 0 ? "상관없음" : popup.data.customer.song ? "들음" + (popup.data.customer.songName ? "예시) " + popup.data.customer.songName : "") : "안들음" }</p>
             <p>시작지: {popup.data.address.start.title ?? popup.data.address.start.address}{popup.data.address.start.title ? " / " + popup.data.address.start.address : ""}</p>
             <p>도착지: {popup.data.address.end.title ?? popup.data.address.end.address}{popup.data.address.end.title ? " / " + popup.data.address.end.address : ""}</p>
           </>
@@ -229,16 +216,16 @@ const Popup = () => {
   }, [content])
 
   return (
-    <PopupContainer display={popup.display}>
+    <div className={"popup-container " + (popup.display ? "d-block" : "d-none")}>
       {topButton}
-      <PopupTitleContainer>
-        <PopupTitle>{titleText}</PopupTitle>
-      </PopupTitleContainer>
-      <PopupContentContainer>
+      <div className="popup-title-container">
+        <p>{titleText}</p>
+      </div>
+      <div className="popup-content-container">
         {content}
-      </PopupContentContainer>
+      </div>
       {bottomButton}
-    </PopupContainer>
+    </div>
   )
 }
 

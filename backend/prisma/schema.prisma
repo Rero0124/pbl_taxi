@@ -89,9 +89,9 @@ model UserLocate {
 
 model UserTendency {
   userId      String    @id
-  inward      Boolean    
-  quickly     Boolean
-  song        Boolean
+  inward      Int       @default(0)
+  quickly     Int       @default(0)
+  song        Int       @default(0)
   songName    String?
 
   user        User      @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)

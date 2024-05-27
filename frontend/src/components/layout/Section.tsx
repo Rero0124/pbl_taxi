@@ -1,26 +1,25 @@
 import { Route, Routes, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../store/store';
-import Login from '../../contents/auth/login/Login';
-import Register from '../../contents/auth/register/Register';
-import Logout from '../../contents/auth/logout/Logout';
-import Tendency from '../../contents/tendency/Tendency';
-import MapPage from '../../contents/mapPage/MapPage';
-import Main from '../../contents/main/Main';
-import MyPage from '../../contents/myPage/MyPage';
-import ErrorPage from '../../pages/error/ErrorPage';
-import { SectionContainer } from './StyledSection';
-import Setting from '../../contents/setting/Setting';
-import Popup from '../popup/Popup';
-import { useState } from 'react';
+import { RootState } from 'store/store';
+import Login from 'components/contents/auth/Login';
+import Register from 'components/contents/auth/Register';
+import Logout from 'components/contents/auth/Logout';
+import Tendency from 'components/contents/Tendency';
+import MapPage from 'components/contents/MapPage';
+import Main from 'components/contents/Main';
+import MyPage from 'components/contents/MyPage';
+import ErrorPage from 'components/pages/ErrorPage';
+import Setting from 'components/contents/Setting';
+import Popup from 'components/pages/Popup';
+import "styles/Layout.css";
 
 const Section = (): JSX.Element => {
   const isLogin = useSelector((state: RootState) => state.user.id !== '');
   
 
   return (
-    <SectionContainer>
-      <Popup/>
+    <div className="section-container">
+      <Popup />
       {!isLogin ? (
         <Routes>
           <Route path="/*" element={<Login />} />
@@ -40,7 +39,7 @@ const Section = (): JSX.Element => {
           <Route path="/logout" element={<Logout />}/>
         </Routes>
       )}
-    </SectionContainer>
+    </div>
   )
 }
 

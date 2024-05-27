@@ -1,10 +1,10 @@
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../../../store/store";
-import { userUnset } from "../../../../store/userReducer";
+import { RootState } from "store/store";
+import { userUnset } from "store/userReducer";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { del } from "../../../../util/ajax";
-import { LogoutComment, LogoutContainer } from "./StyledLogout";
+import { del } from "util/ajax";
+import "styles/Contents.css";
 
 const Logout = (): JSX.Element => {
   const navigate = useNavigate();
@@ -36,9 +36,9 @@ const Logout = (): JSX.Element => {
   }, []);
 
   return (
-    <LogoutContainer>
-      <LogoutComment>{logoutComment}</LogoutComment>
-    </LogoutContainer>
+    <div>
+      <p>{logoutComment}</p>
+    </div>
   )
 }
 

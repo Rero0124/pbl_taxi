@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
 const calledUsers = new Map<string, {user: SessionUser, address: MatchAddress}>();
 const matchedDriver = new Map<string, true>();
 
-const query = (x: string, y: string, inward: boolean, quickly: boolean, song: boolean) => `
+const query = (x: string, y: string, inward: number, quickly: number, song: number) => `
 SELECT 
   "name",
   "phone",
@@ -32,14 +32,14 @@ FROM
       loc."userId",
       st_astext(loc."geom") AS "geom",
       loc."distance",
-      coalesce(ten."inward", false) AS "inward",
-      coalesce(ten."quickly", false) AS "quickly",
-      coalesce(ten."song", false) AS "song",
+      coalesce(ten."inward", 0) AS "inward",
+      coalesce(ten."quickly", 0) AS "quickly",
+      coalesce(ten."song", 0) AS "song",
       ten."songName",
       CASE WHEN rate."score" is NULL THEN 0 ELSE rate."score" END AS "score",
-      (CASE WHEN ten."inward" = ${inward} THEN 2 WHEN ten."inward" IS NULL THEN 1 ELSE 0 END) 
-      + (CASE WHEN ten."quickly" = ${quickly} THEN 2 WHEN ten."quickly" IS NULL THEN 1 ELSE 0 END) 
-      + (CASE WHEN ten."song" = ${song} THEN 2 WHEN ten."song" IS NULL THEN 1 ELSE 0 END) 
+      (CASE WHEN ten."inward" = ${inward} THEN 1 WHEN ten."inward" IS NULL THEN 0 ELSE -1 END) 
+      + (CASE WHEN ten."quickly" = ${quickly} THEN 1 WHEN ten."quickly" IS NULL THEN 0 ELSE -1 END) 
+      + (CASE WHEN ten."song" = ${song} THEN 1 WHEN ten."song" IS NULL THEN 0 ELSE -1 END) 
       + ((CASE WHEN rate."score" IS NULL THEN 4 ELSE rate."score" END) - 2) * 3 AS "point"
     FROM
       (
@@ -143,11 +143,25 @@ router.post('/match/customer', async (req: PostRequest<{customerId: string}>, re
   }
 })
 
+router.delete('/match/cancle/:id', async (req: DeleteRequest<UserParams>, res: ExpressResponse) => {
+  try{
+    if(req.session.user !== undefined) {
+      matchedDriver.delete(req.session.user.id);
+      matchEnd(req.params.id, "cancle");
+      res.status(200).json({ message: "success" });
+    } else {
+      res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
+    }
+  } catch {
+    res.status(500).send({ message: "Internal Server Error" })
+  }
+})
+
 router.delete('/match/end/:id', async (req: DeleteRequest<UserParams>, res: ExpressResponse) => {
   try{
     if(req.session.user !== undefined) {
       matchedDriver.delete(req.session.user.id);
-      matchEnd(req.params.id);
+      matchEnd(req.params.id, "end");
       res.status(200).json({ message: "success" });
     } else {
       res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });

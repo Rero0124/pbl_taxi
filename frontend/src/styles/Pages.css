@@ -1,0 +1,50 @@
+.popup-container {
+  position: absolute;
+  top: 0;
+  left: -20vw;
+  width: 100vw;
+  height: 84vh;
+  margin: 0 20vw;
+  background-color: white;
+  z-index: 100;
+}
+
+.popup-title-container {
+  position: absolute;
+  top: 4vh;
+  left: 0;
+  width: 100vw;
+  height: 10vh;
+}
+
+.popup-content-container {
+  position: absolute;
+  top: 14vh;
+  left: 0;
+  width: 100vw;
+  height: 66vh;
+}
+
+.popup-top-button-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 4vh;
+}
+
+.popup-bottom-button-container {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  top: 80vh;
+  left: 0;
+  width: 100vw;
+  height: 4vh;
+}
+
+.popup-map {
+  margin: auto;
+  width: 60vw;
+  height: 40vh;
+}

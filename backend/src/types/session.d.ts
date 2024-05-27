@@ -13,8 +13,8 @@ interface SessionUser {
   phone: number;
   email: string | null;
   image: string | null;
-  inward: boolean;
-  quickly: boolean;
-  song: boolean;
+  inward: number | 0;
+  quickly: number | 0;
+  song: number | 0;
   songName?: string | null;
 }

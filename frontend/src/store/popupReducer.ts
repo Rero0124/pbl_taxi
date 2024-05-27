@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface Popup {
-  display: number;
+  display: boolean;
   type: string;
   data: any;
 }
@@ -12,7 +12,7 @@ export interface PopupParam {
 }
 
 const initPopup: Popup = {
-  display: 0,
+  display: false,
   type: "",
   data: ""
 }
@@ -24,14 +24,17 @@ const popupSlice = createSlice({
     popupSet(state, action: PayloadAction<PopupParam>) {
       return { ...state, ...action.payload };
     },
+    popupUnSet() {
+      return initPopup;
+    },
     popupShow(state) {
-      return { ...state, display: 1 };
+      return { ...state, display: true };
     },
     popupClose(state) {
-      return { ...state, display: 0 };
+      return { ...state, display: false };
     }
   }
 })
 
-export const { popupSet, popupShow, popupClose } = popupSlice.actions;
+export const { popupSet, popupUnSet, popupShow, popupClose } = popupSlice.actions;
 export default popupSlice.reducer;
