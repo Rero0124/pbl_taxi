@@ -23,7 +23,7 @@ const MyPage = () => {
     <div>
       <div className="container">
         <div className="row">
-          <img className="col" src={user.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${user.image}` : icon} onClick={profileOnClick}/>
+          <img className="col" src={user.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${user.image}` : icon} onClick={profileOnClick} alt="사용자 프로필"/>
           <span className="col">{user.name}의 마이페이지</span>
         </div>
       </div>

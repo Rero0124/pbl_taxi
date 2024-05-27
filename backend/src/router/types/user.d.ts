@@ -30,3 +30,8 @@ interface UserChangePasswordBody {
 interface TargetUserBody {
   userId: string;
 }
+
+interface RateUserBody {
+  userId: string;
+  rate: number;
+}

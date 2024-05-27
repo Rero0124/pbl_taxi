@@ -1,7 +1,7 @@
 import { ChangeEvent, ComponentProps, forwardRef, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "store/store";
-import { popupClose } from "store/popupReducer";
+import { popupClose, popupUnSet } from "store/popupReducer";
 import { del, post } from "util/ajax";
 import { useNavigate } from "react-router-dom";
 import icon from "images/test-icon.png";
@@ -15,6 +15,11 @@ import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
 import { LineString } from "ol/geom";
 import "styles/Pages.css";
+
+interface RatingForm extends HTMLFormElement {
+  readonly rate: HTMLInputElement;
+  readonly follow: HTMLInputElement;
+}
 
 let coordinates: number[][] = [];
 
@@ -86,9 +91,10 @@ const Popup = () => {
   const fileRef = useRef<HTMLInputElement>(null);
   const imageViewRef = useRef<HTMLImageElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
+  const ratingFormRef = useRef<RatingForm>(null);
 
   const cancelOnClick = () => {
-    dispatch(popupClose());
+    dispatch(popupUnSet());
   }
 
   useEffect(() => {
@@ -96,7 +102,7 @@ const Popup = () => {
     if(popup.type === "called") {
       const saveOnClick = () => {
         post(`${process.env.REACT_APP_BACKEND_URL}/search/match/customer`, { body: JSON.stringify({customerId: popup.data.customer.id}) }, () => {});
-        dispatch(popupClose());
+        dispatch(popupUnSet());
       }
       setTopButton(closeButton("닫기", cancelOnClick));
       setBottomButton(saveAndCancelButton("받기", saveOnClick, "거절", cancelOnClick));
@@ -144,12 +150,59 @@ const Popup = () => {
           </>
         );
         setBottomButton(saveAndCancelButton("취소", () => {
-          del(`${process.env.REACT_APP_BACKEND_URL}/user/locate/${popup.data.customer.id}`, {}, () => {})
+          del(`${process.env.REACT_APP_BACKEND_URL}/search/match/cancel/${popup.data.customer.id}`, {}, () => {})
           cancelOnClick();
         }, "도착", () => {
-          del(`${process.env.REACT_APP_BACKEND_URL}/user/locate/${popup.data.customer.id}`, {}, () => {})
+          del(`${process.env.REACT_APP_BACKEND_URL}/search/match/end/${popup.data.customer.id}`, {}, () => {})
           cancelOnClick();
         }));
+      }
+    } else if (popup.type === "matchEnd") {
+      if(popup.data.type === "cancel") {
+        dispatch(popupUnSet());
+      } else if (popup.data.type === "end") {
+        const saveDriverRating = () => {
+          if(ratingFormRef.current) {
+            const followData = {
+              userId: popup.data.driverId
+            }
+
+            const rateData = {
+              userId: popup.data.driverId,
+              rate: Number(ratingFormRef.current.rate.value)
+            }
+
+            if(ratingFormRef.current.follow.value === "follow") post(`${process.env.REACT_APP_BACKEND_URL}/user/follow`, { body: JSON.stringify(followData) }, () => {})
+            else if(ratingFormRef.current.follow.value === "ban") post(`${process.env.REACT_APP_BACKEND_URL}/user/ban`, { body: JSON.stringify(followData) }, () => {})
+            post(`${process.env.REACT_APP_BACKEND_URL}/user/rate`, { body: JSON.stringify(rateData) }, () => { dispatch(popupUnSet()); navigate('/'); })
+          }
+        }
+        setTopButton(<></>);
+        setBottomButton(saveAndCancelButton("닫기", cancelOnClick, "평가하기", saveDriverRating));
+        setTitleText("기사 평가하기");
+        setContent(
+          <>
+            <form ref={ratingFormRef}>
+              <div className="container">
+                <div className="row">
+                  <label className="col" htmlFor="rate">점수: </label>
+                  <input id="rate" className="col" name="rate"/>
+                </div>
+                <div className="row">
+                  <label className="col" htmlFor="follow">팔로잉 여부: </label>
+                  <div className="col-row">
+                    <label htmlFor="follow">팔로우: </label>
+                    <input id="follow" name="follow" type="radio" value="follow"/>
+                    <label htmlFor="ban">밴: </label>
+                    <input id="ban" name="follow" type="radio" value="ban"/>
+                    <label htmlFor="none">안함: </label>
+                    <input id="none" name="follow" type="radio" value="none"/>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </>
+        );
       }
     } else if(popup.type === "image") {
       let selectImage: File;
@@ -176,7 +229,7 @@ const Popup = () => {
           formData.append("data", selectImage);
           post(`${process.env.REACT_APP_BACKEND_URL}/file/upload/profile`, { body: formData, headerInit: false }, () => {}).then((action) => {
             if(action === "reload") navigate(0);
-            dispatch(popupClose());
+            dispatch(popupUnSet());
           });
         }
       }
@@ -218,7 +271,7 @@ const Popup = () => {
   return (
     <div className={"popup-container " + (popup.display ? "d-block" : "d-none")}>
       {topButton}
-      <div className="popup-title-container">
+      <div className="popup-title-container title">
         <p>{titleText}</p>
       </div>
       <div className="popup-content-container">

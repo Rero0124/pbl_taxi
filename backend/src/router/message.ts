@@ -113,14 +113,15 @@ const setDriverLocateSend = async (customerId: string, driverId: string) => {
   }
 }
 
-export const matchEnd = async (customerId: string, type: string) => {
+export const matchEnd = async (customerId: string, driverId: string, type: string) => {
   const customerResponse = allUsers.get(customerId);
   if(customerResponse) {
     clearInterval(driverLocateSendInterval.get(customerId));
     const matchEndData = {
       event: "matchEnd",
       data: {
-        type: type
+        type: type,
+        driverId: driverId
       }
     }
 

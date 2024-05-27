@@ -254,14 +254,30 @@ router.get('/ban', async (req: GetRequest, res: ExpressResponse) => {
 router.post('/follow', async (req: PostRequest<TargetUserBody>, res: ExpressResponse) => {
   try {
     if(req.session.user !== undefined) {
-      const follow = await prisma.userFollowList.create({
-        data: {
-          userId: req.session.user.id,
-          followedUserId: req.body.userId
+      const oldFollow = await prisma.userFollowList.findFirst({
+        where: {
+          userId: req.body.userId,
+          followedUserId: req.session.user.id
         }
       });
       
-      res.status(200).json({ message: "success", data: follow });
+      if(!oldFollow) {
+        const follow = await prisma.userFollowList.create({
+          data: {
+            userId: req.body.userId,
+            followedUserId: req.session.user.id
+          }
+        });
+        await prisma.userBanList.deleteMany({
+          where: {
+            userId: req.body.userId,
+            bannedUserId: req.session.user.id
+          }
+        })
+        res.status(200).json({ message: "success", data: follow });
+      } else {
+        res.status(400).json({ message: "fail" });
+      }
     } else {
       res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
     }
@@ -277,13 +293,49 @@ router.post('/follow', async (req: PostRequest<TargetUserBody>, res: ExpressResp
 router.post('/ban', async (req: PostRequest<TargetUserBody>, res: ExpressResponse) => {
   try {
     if(req.session.user !== undefined) {
-      const ban = await prisma.userBanList.create({
-        data: {
-          userId: req.session.user.id,
-          bannedUserId: req.body.userId
+      const oldBan = await prisma.userBanList.findFirst({
+        where: {
+          userId: req.body.userId,
+          bannedUserId: req.session.user.id
         }
       });
-      res.status(200).json({ message: "success", data: ban });
+      
+      if(!oldBan) {
+        const ban = await prisma.userBanList.create({
+          data: {
+            userId: req.body.userId,
+            bannedUserId: req.session.user.id
+          }
+        });
+        await prisma.userFollowList.deleteMany({
+          where: {
+            userId: req.body.userId,
+            followedUserId: req.session.user.id
+          }
+        })
+        res.status(200).json({ message: "success", data: ban });
+      } else {
+        res.status(400).json({ message: "fail" });
+      }
+    } else {
+      res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
+    }
+  } catch {
+    res.status(500).send({ message: "Internal Server Error" })
+  }
+})
+
+router.post("/rate", async (req: PostRequest<RateUserBody>, res: ExpressResponse) => {
+  try {
+    if(req.session.user !== undefined) {
+      await prisma.userRate.create({
+        data: {
+          userId: req.body.userId,
+          ratedUserId: req.session.user.id,
+          score: req.body.rate
+        }
+      });
+      res.status(200).json({ message: "success" });
     } else {
       res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
     }

@@ -27,8 +27,6 @@ model User {
   init          Boolean   @default(true)
   
   payment               UserPayment?
-  rate                  UserRate[]          @relation(name: "userRate_user")
-  ratedUser             UserRate[]          @relation(name: "userRate_ratedUser")
   message               UserMessage[]
   locate                UserLocate?
   tendency              UserTendency?
@@ -67,14 +65,12 @@ model UserMessage {
 }
 
 model UserRate {
+  id            Int     @id @default(autoincrement())
   userId        String
   ratedUserId   String
   score         Int
 
-  user          User  @relation(name: "userRate_user", fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  ratedUser     User  @relation(name: "userRate_ratedUser", fields: [ratedUserId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-
-  @@id([userId, ratedUserId])
+  @@index([userId, ratedUserId])
 }
 
 model UserLocate {

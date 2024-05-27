@@ -36,11 +36,11 @@ FROM
       coalesce(ten."quickly", 0) AS "quickly",
       coalesce(ten."song", 0) AS "song",
       ten."songName",
-      CASE WHEN rate."score" is NULL THEN 0 ELSE rate."score" END AS "score",
+      CASE WHEN rate."score" is NULL THEN 0 ELSE ROUND(rate."score", 2) END AS "score",
       (CASE WHEN ten."inward" = ${inward} THEN 1 WHEN ten."inward" IS NULL THEN 0 ELSE -1 END) 
       + (CASE WHEN ten."quickly" = ${quickly} THEN 1 WHEN ten."quickly" IS NULL THEN 0 ELSE -1 END) 
       + (CASE WHEN ten."song" = ${song} THEN 1 WHEN ten."song" IS NULL THEN 0 ELSE -1 END) 
-      + ((CASE WHEN rate."score" IS NULL THEN 4 ELSE rate."score" END) - 2) * 3 AS "point"
+      + (ROUND(((CASE WHEN rate."score" IS NULL THEN 4 ELSE rate."score" END) - 2) * 3, 2)) AS "point"
     FROM
       (
         SELECT 
@@ -75,6 +75,20 @@ router.get('/tendency', async (req: GetRequest<{}, LocateQuery>, res: ExpressRes
   try{
     if(req.session.user !== undefined) {
       const result = await prisma.$queryRawUnsafe<SearchResult>(query(req.query.x, req.query.y, req.session.user.inward, req.session.user.quickly, req.session.user.song));
+      const follow = await prisma.userFollowList.count({
+        where: {
+          userId: req.session.user.id
+        }
+      });
+      const ban = await prisma.userBanList.count({
+        where: {
+          userId: req.session.user.id
+        }
+      });
+
+      if(follow > 0) result.point += 3;
+      if(ban > 0) result.point -= 2;
+      
       res.status(200).json({ message: "success", data: result });
     } else {
       res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
@@ -88,6 +102,20 @@ router.get('/speed', async (req: GetRequest<{}, LocateQuery>, res: ExpressRespon
   try{
     if(req.session.user !== undefined) {
       const result = await prisma.$queryRawUnsafe<SearchResult>(query(req.query.x, req.query.y, req.session.user.inward, req.session.user.quickly, req.session.user.song));
+      const follow = await prisma.userFollowList.count({
+        where: {
+          userId: req.session.user.id
+        }
+      });
+      const ban = await prisma.userBanList.count({
+        where: {
+          userId: req.session.user.id
+        }
+      });
+
+      if(follow > 0) result.point += 3;
+      if(ban > 0) result.point -= 2;
+
       res.status(200).json({ message: "success", data: result });
     } else {
       res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
@@ -143,11 +171,11 @@ router.post('/match/customer', async (req: PostRequest<{customerId: string}>, re
   }
 })
 
-router.delete('/match/cancle/:id', async (req: DeleteRequest<UserParams>, res: ExpressResponse) => {
+router.delete('/match/cancel/:id', async (req: DeleteRequest<UserParams>, res: ExpressResponse) => {
   try{
     if(req.session.user !== undefined) {
       matchedDriver.delete(req.session.user.id);
-      matchEnd(req.params.id, "cancle");
+      matchEnd(req.params.id, req.session.user.id, "cancel");
       res.status(200).json({ message: "success" });
     } else {
       res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
@@ -161,7 +189,7 @@ router.delete('/match/end/:id', async (req: DeleteRequest<UserParams>, res: Expr
   try{
     if(req.session.user !== undefined) {
       matchedDriver.delete(req.session.user.id);
-      matchEnd(req.params.id, "end");
+      matchEnd(req.params.id, req.session.user.id, "end");
       res.status(200).json({ message: "success" });
     } else {
       res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
