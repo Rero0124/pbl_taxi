@@ -55,19 +55,19 @@ const Setting = () => {
   return (
     <div>
       <form onSubmit={saveSetting}>
-        <div className="container">
-          <div className="row border-top-1 hvh9">
+        <div className="container pt-1">
+          <div className="row border-top-1 h-v9">
             <p className="col setting-row-title">기본 검색 설정</p>
             <div className="col pointer" data-type="searchType" onClick={clickedSelect}>
-              <div className="wvw50 hvh9 lh-9vh">{searchType.text}</div>
+              <div className="w-v50 h-v9 lh-9vh">{searchType.text}</div>
               <ul className={"setting-select-ul " + (searchTypeSelectClicked ? "d-block" : "d-none")}>
                 <li className={"setting-select-li border-1 border-bottom-0 " + (searchType.value === "tendency" ? "d-none" : "d-block")} data-type="searchType" data-value="tendency" onClick={changeSetting}>{searchTypeTendencyOption.text}</li>
                 <li className={"setting-select-li border-1 " + (searchType.value === "speed" ? "d-none" : "d-block")} data-type="searchType" data-value="speed" onClick={changeSetting}>{searchTypeSpeedOption.text}</li>
               </ul>
             </div>
           </div>
-          <div className="row border-top-1 border-bottom-1 hvh9">
-            <Link className="col w100 hvh9 lh-9vh text-center" to="/logout">로그아웃</Link>
+          <div className="row border-top-1 border-bottom-1 h-v9">
+            <Link className="col w-v100 h-v9 lh-9vh text-center" to="/logout">로그아웃</Link>
           </div>
         </div>
         <div className="setting-save-container container">

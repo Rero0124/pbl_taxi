@@ -73,6 +73,35 @@ router.get('/user/:id', async (req: GetRequest<UserParams>, res: ExpressResponse
   }
 })
 
+router.patch('/profile', async (req: PatchRequest<UserProfileBody>, res: ExpressResponse) => {
+  try {
+    if(req.session.user !== undefined) {
+      const userInfo: UserInfo = await prisma.user.update({
+        data: {
+          name: req.body.name,
+          email: req.body.email,
+          phone: req.body.phone
+        },
+        include: {
+          tendency: true
+        },
+        where: {
+          id: req.session.user.id
+        }
+      })
+
+      defaultTendency.userId = req.session.user.id;
+      if(userInfo.tendency === null) userInfo.tendency = defaultTendency;
+  
+      res.status(200).json({ message: "success", data: userInfo });
+    } else {
+      res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
+    }
+  } catch {
+    res.status(500).send({ message: "Internal Server Error" })
+  }
+})
+
 /**
  * 사용자 초기 해제
  */

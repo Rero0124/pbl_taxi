@@ -21,24 +21,24 @@ const MyPage = () => {
 
   return (
     <div>
-      <div className="container">
+      <div className="container pt-1 m-auto">
         <div className="row">
-          <img className="col" src={user.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${user.image}` : icon} onClick={profileOnClick} alt="사용자 프로필"/>
+          <img className="col mr-2" src={user.image ? `${process.env.REACT_APP_BACKEND_URL}/file/view/profile/${user.image}` : icon} onClick={profileOnClick} alt="사용자 프로필"/>
           <span className="col">{user.name}의 마이페이지</span>
         </div>
       </div>
-      <div className="container">
+      <div className="container pt-1 m-auto">
         <div className="row">
-          <Link className="col" to="/profile">
-            <img alt="프로필 설정" src={icon} />
+          <Link className="col w-p100" to="/profile">
+            <img className="w-p100 h-p100" alt="프로필 설정" src={icon} />
             <span>프로필 설정</span>
           </Link>
-          <Link className="col" to="/tendency">
-            <img alt="성향 설정" src={icon} />
+          <Link className="col w-p100" to="/tendency">
+            <img className="w-p100 h-p100" alt="성향 설정" src={icon} />
             <span>성향 설정</span>
           </Link>
-          <Link className="col" to="/setting">
-            <img alt="설정 아이콘" src={icon} />
+          <Link className="col w-p100" to="/setting">
+            <img className="w-p100 h-p100" alt="설정 아이콘" src={icon} />
             <span>앱 설정</span>
           </Link>
         </div>

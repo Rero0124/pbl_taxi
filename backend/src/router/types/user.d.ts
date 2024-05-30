@@ -17,6 +17,12 @@ interface UserTendencyBody {
   songName: string | null;
 }
 
+interface UserProfileBody {
+  name?: string;
+  phone: number;
+  email?: string;
+}
+
 interface UserLocateBody {
   x: number;
   y: number;

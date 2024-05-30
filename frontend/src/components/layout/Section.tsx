@@ -11,6 +11,7 @@ import MyPage from 'components/contents/MyPage';
 import ErrorPage from 'components/pages/ErrorPage';
 import Setting from 'components/contents/Setting';
 import Popup from 'components/pages/Popup';
+import Profile from 'components/contents/Profile';
 import "styles/Layout.css";
 
 const Section = (): JSX.Element => {
@@ -33,6 +34,7 @@ const Section = (): JSX.Element => {
           <Route path="/map" element={<MapPage />} />
           <Route path="/my" element={<MyPage />} />
           <Route path="/tendency" element={<Tendency/>} />
+          <Route path="/profile" element={<Profile />}/>
           <Route path="/setting" element={<Setting />}/>
           <Route path="/login" element={<Navigate replace to="/" />} />
           <Route path="/register" element={<Navigate replace to="/" />} />

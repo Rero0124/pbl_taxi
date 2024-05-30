@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'store/store';
 import { UserTendency, userTendencySet } from 'store/userReducer';
 import "styles/Contents.css";
+import { useNavigate } from 'react-router-dom';
+import { put } from 'util/ajax';
 
 interface TendencyFormType extends HTMLFormElement {
   readonly inward: HTMLInputElement;
@@ -13,6 +15,7 @@ interface TendencyFormType extends HTMLFormElement {
 }
 
 const Tendency = (): JSX.Element => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
 
@@ -22,18 +25,13 @@ const Tendency = (): JSX.Element => {
     const formData: JsonData = formJsonData(e.currentTarget);
 
     if(formValidationCheck(e.currentTarget)) {
-      fetch(`${process.env.REACT_APP_BACKEND_URL}/user/${user.id}/tendency`, {
-        method: 'PUT',
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          ...formData
-        })
-      }).then((res: Response) => res.json()).then((data: UserTendency) => {
-        dispatch(userTendencySet(data));
+      put(`${process.env.REACT_APP_BACKEND_URL}/user/${user.id}/tendency`, { body: JSON.stringify(formData)}, (data: BackendResponseData) => {
+        if(data.message === "success") {
+          dispatch(userTendencySet(data.data));
+        } else {
+          alert(data.message);
+        }
       })
-      
     }
   }
   return (
@@ -91,6 +89,7 @@ const Tendency = (): JSX.Element => {
           </div>
         </div>
         <div className="row">
+          <button type="button" onClick={() => {navigate(-1)}}>취소</button>
           <button type="submit">등록</button>
         </div>
       </form>
