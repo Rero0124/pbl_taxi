@@ -13,12 +13,14 @@ import { GeoLocationPosition, locationDeny, locationSet, schdulerSet, schdulerUn
 import { del, put } from 'util/ajax';
 import { PopupParam, popupSet, popupShow } from 'store/popupReducer';
 import { getDriverLocate } from 'components/pages/Popup';
+import { useSearchParams } from 'react-router-dom';
 
 function App() {
   const dispatch = useDispatch();
 
   const user = useSelector((state: RootState) => state.user);
   const location = useSelector((state: RootState) => state.location);
+  const [params] = useSearchParams()
   const [serverEvent, setServerEvent] = useState<EventSource | null>(null);
   const [appType, setAppType] = useState<string>("customer");
 
@@ -83,7 +85,7 @@ function App() {
       })
     }
 
-    if(isEdge) setAppType("driver");
+    if(isMobile && params.get("setType") === "driver") setAppType("driver");
 
     if(location.isEnable) {
       updateGeoLocation();
