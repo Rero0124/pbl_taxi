@@ -4,17 +4,22 @@ import "styles/Layout.css";
 const Navigation = () => {
   return (
 		<div className="navigation-container">
-			<ul className="w100">
-				<li>
-					<Link className="navigation-link" to="/">홈</Link>
-				</li>
-				<li>
-					<Link className="navigation-link" to="/event">이용내역/알림</Link>
-				</li>
-				<li>
-					<Link className="navigation-link" to="/my">내 정보</Link>
-				</li>
-			</ul>
+			<div className="container">
+				<div className="row">
+					<Link className="navigation-link col w-v33" to="/">
+						<div className="home-icon w-p30 h-p30 m-auto"></div>
+						<span>홈</span>
+					</Link>
+					<Link className="navigation-link col w-v33" to="/event">
+						<div className="alerm-icon w-p30 h-p30 m-auto"></div>
+						<span>이용내역/알림</span>
+					</Link>
+					<Link className="navigation-link col w-v33" to="/my">
+						<div className="mypage-icon w-p30 h-p30 m-auto"></div>
+						<span>내 정보</span>
+					</Link>
+				</div>
+			</div>
 		</div>
   )
 }

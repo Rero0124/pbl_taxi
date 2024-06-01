@@ -19,15 +19,49 @@ img {
   height: 50px;
 }
 
+a {
+  text-decoration: none;
+  color: black;
+}
+
+.home-icon {
+  background: url(images/icons.svg);
+  background-repeat: no-repeat;
+  background-position: -120px -145px;
+}
+
+.alerm-icon {
+  background: url(images/icons.svg);
+  background-repeat: no-repeat;
+  background-position: -79px -40px;
+}
+
+.mypage-icon {
+  background: url(images/icons.svg);
+  background-repeat: no-repeat;
+  background-position: -79px -252px;
+}
+
+.search-icon {
+  background: url(images/icons.svg);
+  background-repeat: no-repeat;
+  background-position: -35px -250px;
+}
+
+.bg-white {
+  background-color: white;
+}
+
 .w100 { width: 100%; }
 .w-p10 { width: 10px; } .w-p20 { width: 20px; } .w-p30 { width: 30px; } .w-p40 { width: 40px; } .w-p50 { width: 50px; }
 .w-p100 { width: 100px; } .w-p200 { width: 200px; } .w-p300 { width: 300px; } .w-p400 { width: 400px; } .w-p500 { width: 500px; }
 .w-p120 { width: 120px; } .w-p150 { width: 150px; } .w-p180 { width: 180px; } .w-p210 { width: 210px; } .w-p240 { width: 240px; } .w-p270 { width: 270px; }
-.w-v10 { width: 10vw; } .w-v20 { width: 20vw; } .w-v50 { width: 50vw; } .w-v100 { width: 100vw; }
+.w-v10 { width: 10vw; } .w-v20 { width: 20vw; } .w-v33 { width: 33vw; } .w-v50 { width: 50vw; } .w-v100 { width: 100vw; }
 .h100 { height: 100%; }
+.h-p10 { height: 10px; } .h-p20 { height: 20px; } .h-p30 { height: 30px; } .h-p40 { height: 40px; } .h-p50 { height: 50px; }
 .h-p100 { height: 100px; } .h-p200 { height: 200px; } .h-p300 { height: 300px; } .h-p400 { height: 400px; } .h-p500 { height: 500px; }
 .h-p120 { height: 120px; } .h-p150 { height: 150px; } .h-p180 { height: 180px; } .h-p210 { height: 210px; } .h-p240 { height: 240px; } .h-p270 { height: 270px; }
-.h-v9 { height: 9vh; }
+.h-v9 { height: 9vh; } .h-v79 { height: 79vh; }
 .m-auto { margin: auto; }
 .m-1 { margin: 1vh; } .m-2 { margin: 2vh; } .m-3 { margin: 3vh; } .m-4 { margin: 4vh; } .m-5 { margin: 5vh; }
 .mt-1 { margin-top: 1vh; } .mt-2 { margin-top: 2vh; } .mt-3 { margin-top: 3vh; } .mt-4 { margin-top: 4vh; } .mt-5 { margin-top: 5vh; }
@@ -109,6 +143,15 @@ img {
   width: 100%;
 }
 
+.scroll {
+  overflow: auto;
+  -ms-overflow-style: none;
+}
+
+.scroll::-webkit-scrollbar{
+  display: none;
+}
+
 .row { 
   position: relative;
   display: flex;
@@ -122,6 +165,7 @@ img {
   position: relative;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   text-align: center;
 }
 
@@ -140,6 +184,10 @@ img {
   width: 100%;
   text-align: center;
   font-size: large;
+}
+
+.font-small {
+  font-size: smaller;
 }
 
 .partition {

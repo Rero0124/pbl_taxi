@@ -51,10 +51,8 @@ const map = new Map({
   controls: []
 });
 
-let i = 0;
-
 export const getDriverLocate = (x: number, y: number) => {
-  coordinates.push([x, y + (i++ * 0.0001)]);
+  coordinates.push([x, y]);
   const feature = new Feature({
     geometry: new LineString(coordinates.length > 1 ? coordinates : [coordinates[0], coordinates[0]])
   });

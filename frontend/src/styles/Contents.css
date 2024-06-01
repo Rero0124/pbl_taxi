@@ -7,13 +7,12 @@
   top: 0%;
   left: 0;
   width: 100vw;
-  height: 10vh;
   z-index: 150;
 }
 
 .map-container {
   width: 100vw;
-  height: 84vh;
+  height: 79vh;
 }
 
 .setting-row-title {

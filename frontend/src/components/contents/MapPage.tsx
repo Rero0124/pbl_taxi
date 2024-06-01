@@ -302,7 +302,7 @@ const MapPage = () => {
   
           locate.result.items.forEach((item, idx) => {
             if(item.category) {
-              if(item.category.indexOf("중앙행정기관") > -1) administrativeIdx.push(idx);
+              if(item.category.indexOf("행정") > -1) administrativeIdx.push(idx);
               if(item.category.indexOf("지하철역입구") > -1) subwayEnteranceIdx.push(idx);
               if(item.category.indexOf("지하철") > -1) subwayIdx.push(idx);
               if(item.category.indexOf("건물") > -1) buildingIdx.push(idx);
@@ -428,7 +428,7 @@ const MapPage = () => {
   }, [startAddress, endAddress])
 
   return (
-    <div>
+    <div className="h-v79 scroll">
       {currentPage === "driver" ? (
         <>
           <p className="title">기사검색</p>
@@ -453,12 +453,12 @@ const MapPage = () => {
       ) : (
         currentPage === "map" ? (
           <>
-            <div className="map-over-search-container container">
+            <div className="map-over-search-container bg-white container pt-1 pb-1">
               <div className="row">
                 <div className="col-row">
-                  <span onClick={() => {moveSearch("start")}}>{startAddress ? startAddress.title : "목적지를 선택해주세요"}</span>
-                  <span>{" > "}</span>
-                  <span onClick={() => {moveSearch("end")}} >{endAddress ? endAddress.title : "목적지를 선택해주세요"}</span>
+                  <input className="p-1 w-p150 font-small" onClick={() => {moveSearch("start")}} value={startAddress ? startAddress.title : "목적지를 선택해주세요"} />
+                  <span className="p-1">{" > "}</span>
+                  <input className="p-1 w-p150 font-small" onClick={() => {moveSearch("end")}} value={endAddress ? endAddress.title : "목적지를 선택해주세요"} />
                 </div>
               </div>
             </div>
@@ -470,20 +470,24 @@ const MapPage = () => {
             <form onSubmit={searchAddress}>
               <input className="block-center" ref={searchTxtRef} name="searchTxt"/>
             </form>
-            <div>
+            <div className="container">
               {searchResult.length > 0 ? (
                 searchResult.map((item, idx) => {
-                  const locateTitle = item.title;
-                  const locateAddress = item.address?.road || item.address?.parcel;
-                  return <div className="row" key={idx} onClick={() => { selectRow(idx) }}>
-                    <div className="col">
-                      <p>{locateTitle || locateAddress}</p>
-                      { locateTitle ? (<p>{locateAddress}</p>) : (<></>) }
+                  if(item.category && (item.category.indexOf("민방위") > -1 || item.category.indexOf("따릉이") > -1 || item.category.indexOf("진출입") > -1 || item.category.indexOf("기타") > -1 || item.category.indexOf("서비스업") > -1 || item.category.indexOf("도로시설") > -1 || item.category.indexOf("입구") > -1 || item.category.indexOf("데이터") > -1 || item.category.indexOf("무인민원") > -1)) {
+                    return;
+                  } else {
+                    const locateTitle = item.title;
+                    const locateAddress = item.address?.road || item.address?.parcel;
+                    return <div className="row mb-1" key={idx} onClick={() => { selectRow(idx) }}>
+                      <div className="col">
+                        <span>{locateTitle || locateAddress}</span>
+                        { locateTitle ? (<span>{locateAddress}</span>) : (<></>) }
+                      </div>
                     </div>
-                  </div>
+                  }
                 })
               ) : (
-                <div className="row">
+                <div className="row" key={0}>
                   <p className="col">검색된 결과가 없습니다.</p>
                 </div>
               )}
