@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { del, get } from "util/ajax";
 
 interface EventType {
@@ -11,19 +10,23 @@ interface EventType {
 }
 
 const Event = () => {
-  const navigate = useNavigate();
-
   const [eventList, setEventList] = useState<EventType[]>([]);
 
-  get(`${process.env.REACT_APP_BACKEND_URL}/event`, {}, (data: BackendResponseData<EventType[]>) => {
-    const resEventList = data.data?.map((item) => { item.createAt = new Date(item.createAt); return item })
-    setEventList(resEventList ?? []);
-  });
+  const getEventList = () => {
+    get(`${process.env.REACT_APP_BACKEND_URL}/event`, {}, (data: BackendResponseData<EventType[]>) => {
+      const resEventList = data.data?.map((item) => { item.createAt = new Date(item.createAt); return item })
+      setEventList(resEventList ?? []);
+    });
+  }
+
+  useEffect(() => {
+    getEventList()
+  }, [])
 
   const deleteEvent = (id: number) => {
     del(`${process.env.REACT_APP_BACKEND_URL}/event/${id}`, {}, (data: BackendResponseData) => {
       if(data.message === "success") {
-        navigate(0);
+        getEventList()
       }
     });
   }
