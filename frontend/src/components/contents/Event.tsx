@@ -39,7 +39,7 @@ const Event = () => {
             const title = item.eventTitle;
             const message = item.eventMessage;
             return <div className="row mb-1" key={idx}>
-              <div className="col">{item.createAt.toDateString()}</div>
+              <div className="col">{item.createAt.toLocaleString()}</div>
               <div className="col">
                 <span>{title}</span>
                 <span>{message}</span>
