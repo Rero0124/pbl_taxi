@@ -175,7 +175,7 @@ router.delete('/match/cancel/:id', async (req: DeleteRequest<UserParams>, res: E
   try{
     if(req.session.user !== undefined) {
       matchedDriver.delete(req.session.user.id);
-      matchEnd(req.params.id, req.session.user.id, "cancel");
+      matchEnd(req.params.id, req.session.user.id, req.session.user.name, "cancel");
       res.status(200).json({ message: "success" });
     } else {
       res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });
@@ -189,7 +189,7 @@ router.delete('/match/end/:id', async (req: DeleteRequest<UserParams>, res: Expr
   try{
     if(req.session.user !== undefined) {
       matchedDriver.delete(req.session.user.id);
-      matchEnd(req.params.id, req.session.user.id, "end");
+      matchEnd(req.params.id, req.session.user.id, req.session.user.name, "end");
       res.status(200).json({ message: "success" });
     } else {
       res.status(200).json({ message: "로그인을 먼저 해주세요.", action: "reload" });

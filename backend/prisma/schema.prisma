@@ -73,6 +73,17 @@ model UserRate {
   @@index([userId, ratedUserId])
 }
 
+model UserEvent {
+  id            Int     @id @default(autoincrement())
+  userId        String
+  eventType     String
+  eventTitle    String
+  eventMessage  String
+  createAt      DateTime  @default(now())
+
+  @@index([userId, eventType])
+}
+
 model UserLocate {
   userId        String  @id
   geom          Unsupported("geometry(Point, 4326)")

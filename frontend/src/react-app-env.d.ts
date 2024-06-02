@@ -17,5 +17,11 @@ interface JsonData {
 interface BackendResponseData<Body = any> {
   message: string;
   action?: ActionType;
-  data?: Data; 
+  data: Body; 
+}
+
+interface BackendResponseData {
+  message: string;
+  action?: ActionType;
+  data?: any; 
 }

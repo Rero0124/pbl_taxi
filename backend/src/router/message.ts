@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import express, { Router } from "express";
 import { SessionUser } from "../types/session";
+import { addEvent } from "./event";
 
 const router: Router = express.Router();
 
@@ -101,9 +102,7 @@ const setDriverLocateSend = async (customerId: string, driverId: string) => {
         SELECT ST_X("geom") as x, ST_Y("geom") as y FROM "UserLocate" WHERE "userId" = '${driverId}'
       `)
 
-      const driverLocateData = {
-        event: "driverLocate",
-        data: locate[0]
+      const driverLocateData = { 
       }
 
       allUsers.get(customerId)?.write(`data: ${JSON.stringify(driverLocateData)}\n\n`);
@@ -113,7 +112,7 @@ const setDriverLocateSend = async (customerId: string, driverId: string) => {
   }
 }
 
-export const matchEnd = async (customerId: string, driverId: string, type: string) => {
+export const matchEnd = async (customerId: string, driverId: string, driverName: string | null, type: string) => {
   const customerResponse = allUsers.get(customerId);
   if(customerResponse) {
     clearInterval(driverLocateSendInterval.get(customerId));
@@ -126,6 +125,20 @@ export const matchEnd = async (customerId: string, driverId: string, type: strin
     }
 
     allUsers.get(customerId)?.write(`data: ${JSON.stringify(matchEndData)}\n\n`);
+
+    if(type === "cancel") {
+      addEvent(customerId, {
+        eventType: "matchEnd",
+        eventTitle: "호출 취소",
+        eventMessage: `${driverName || driverId}님께서 호출을 취소하였습니다.`
+      })
+    } else if(type === "end") {
+      addEvent(customerId, {
+        eventType: "matchEnd",
+        eventTitle: "운행 종료",
+        eventMessage: `${driverName || driverId}님과의 운행이 종료되었습니다.`
+      })
+    }
   }
 }
 
